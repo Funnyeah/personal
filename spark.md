@@ -131,49 +131,57 @@ model.extractParamMap().items()            #得到最佳模型的参数
 print({param[0].name: param[1] for param in model.extractParamMap().items()})   #打印参数
 ```
 
+### 常用包
+    import pyspark.sql.functions as F
+    from pyspark.conf import SparkConf
+    from pyspark.context import SparkContext
+    from pyspark.sql import SparkSession
+    from pyspark.sql import Window
+    from pyspark.sql import Row
+    from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
+    from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
+
 ### spark dataframe
 ```python
-
-取出前n行数据返回dataframe格式数据
-df.orderby(['age']).limit(100)
-
-df.head(100) 取出前n行数据返回list格式数据 如下所示取出具体的数据
-one_city_df.orderBy(['month_in_num'],ascending=False).head(2276)[-1][-1]    
-
-可以指定取出的列 
-head(5)[3]['city_id']表示返回长度为5的列表中的第四个Row数据的city_id字段值
 
 更改字段类型
 df.withColumn('age',df.age.cast('string'))  
 
-对某列求和   转rdd，取出需要求和的列的下标（此处为3），应用reduce求和
-bike_in_df.rdd.map(lambda x:x[3]).reduce(lambda x,y:x+y)   
-
-同上述操作
-From spark.sql.function import _sum           
-sdf.agg(_sum('in_num')).collect()    
-
 指定列填充缺失值
-Df4.na.fill({ 'age' : 50, 'name' : 'x'})  
+df.na.fill({ 'age' : 50, 'name' : 'x'}) 
 
-将一行展开为多行   将score按照 ',' 分割，然后对分割后的数组每个元素都 explode 为一行
+filter函数，此处将col_a列大于0的数据筛选出来
+df.filter(F.col('col_a')>0)
+
+将旧字段改为新字段名(parms旧，parms新)
+df.withColumnRenamed('event_day','bike_event_day')
+
+expr函数可使用hive语法，此处为将日期date格式转为字符串
+od = od.withColumn('st_event_day',F.expr("FROM_UNIXTIME(UNIX_TIMESTAMP(cast(to_date(start_time) as string),'yyyy-mm-dd'),'yyyymmdd')"))
+
+when函数，如果条件为真，则赋某值，否则赋另一个值
+tmp_df = tmp_df.withColumn('profit_start',F.when(F.col('consumption')==0.5,F.col('span_start')).otherwise(F.col('wait_start_time')))
+
+将一行展开为多行  将score按照 ',' 分割，然后对分割后的数组每个元素都 explode 为一行
 df.withColumn('score', F.explode(F.split(df.score, ','))).show()     
 
 将某字段相同，其余字段不同的行合并为一行 ，并将不同的字段组成列表新字段返回
 df24.groupBy(['data']).agg(F.collect_list('number').alias('newcol')).show() 
 
 同上，用于合并多列字段值不同的数据
-df.groupBy("d").agg(*[collect_set(col) for col in ['s','f']]).show()    
+df.groupBy("d").agg(*[collect_set(col) for col in ['s','f']]).show()   
 
-常用包
-import pyspark.sql.functions as F
-from pyspark.conf import SparkConf
-from pyspark.context import SparkContext
-from pyspark.sql import SparkSession
-from pyspark.sql import Window
-from pyspark.sql import Row
-from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
-from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
+对某列求和   转rdd，取出需要求和的列的下标（此处为3），应用reduce求和
+df.rdd.map(lambda x:x[3]).reduce(lambda x,y:x+y)   
+
+取出前n行数据返回dataframe格式数据
+df.orderby(['age']).limit(100)
+
+df.head(100) 取出前n行数据返回list格式数据 如下所示取出具体的数据
+df.orderBy(['month_in_num'],ascending=False).head(2276)[-1][-1]    
+
+可以指定取出的列 
+df.head(5)[3]['city_id']表示返回长度为5的列表中的第四个Row数据的city_id字段值
 
 udf函数用法，输入多字段计算，返回一个字段，可指定返回类型
 @udf(returnType=ArrayType(IntegerType()))
@@ -188,6 +196,27 @@ def get_target(df):
     pass
     return df[['city_id','station_id']]
 end = df.groupby(['city_id','scene_flag','span']).apply(get_target)  
+
+操作多列，返回多列
+def get_move_in(x):
+    x_dict = x.asDict() # 每行数据转为python字典
+    x_dict['col_a'])  #多列操作
+    new_x = Row(**x_dict)
+    return new_x
+schema_move_in = StructType([
+        StructField("city_id", IntegerType(), True),
+        StructField("span_id", IntegerType(), True),
+        StructField("station_id", IntegerType(), True),
+        StructField("station_point", StringType(), True),
+        StructField("event_day", StringType(), True),
+        StructField("city_center_lat", StringType(), True),
+        StructField("city_center_lon", StringType(), True),
+        StructField("end_point_list", ArrayType(StringType()), True),
+        StructField("move_in", IntegerType(), True)
+    ])
+df_rdd = df.rdd.map(get_move_in) 
+df = spark.createDataFrame(df_rdd,schema=schema_move_in) 
+# schema 确定数据类型，若有字段有空值，不定义好schema就会报错
 
 ```
 

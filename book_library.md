@@ -27,6 +27,7 @@
 
 [主流机器学习code](https://github.com/zhulei227/ML_Notes)
 
+[特征工程](https://www.zhihu.com/question/29316149)
 
 ### 因果推断
 - the book of why（为什么：因果关系的新科学）
