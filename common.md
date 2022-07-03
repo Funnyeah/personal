@@ -83,6 +83,12 @@ Tips: 一定要cd到项目文件下再创建分支
     # 导出详细日志到本地
     yarn logs -applicationId application_1614586399404_103993|less
     
+### jupyter启动脚本
+    # bat文件内容
+    @echo off
+    cd /d d:\ 
+    start cmd /k "conda activate py36 && jupyter notebook"
+
 
 ### 6.常用包
     import sys
