@@ -7,6 +7,10 @@
   
 - 工具
   - [最优运输](optimal_transport.md)
-  - [常用工具](frequent_tools.md)
+  - [常见问题](common.md)
+  - [Hive](hive.md)
+  - [Spark](spark.md)
+  - [Pandas](pandas.md)
+  - [Python](python.md)
   - [认知提升](book_library.md)
   

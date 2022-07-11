@@ -177,7 +177,27 @@
     rcParams['figure.figsize'] = 30,20
     sns.set(font_scale = 1.5)
 
-### 全局配置
+
+### mysql数据读取+spark计算
+```python
+import pymysql
+data=[]
+# 打开数据库连接
+db = pymysql.connect(host='10.100.45.131',
+        port = 3306,
+        user='ulb_mozi_read',
+        passwd='!L5rY6g#H',
+        db ='mozi' )
+ 
+# 使用 cursor() 方法创建一个游标对象 cursor
+cursor = db.cursor()
+# 使用 execute()  方法执行 SQL 查询 
+cursor.execute("SELECT * from jw_block_station where block_version_code=21")
+data.extend(cursor.fetchall())
+df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_id','block_version_code','create_time','update_time'])
+```
+
+### 全局配置文件读取
     # transfer.conf 配置文件
     [trans]
     less_bike_rate = 0.40
@@ -317,7 +337,8 @@ res = tree.query_ball_point((0,0), 3)
     dic.setdefault(1,[]).append((4,5))  #{1: [(2, 3), (4, 5)]}
 
 
-### list(tuple(x,y)) ——>  list(tuple(x),tuple(y))
+### 列表元祖->元祖列表
+    -- list(tuple(x,y)) ——>  list(tuple(x),tuple(y))
 
     lis4= [(-516, -53), (-516, -53), (-511, -60), (-511, -60), (-511, -60), (-509, -55), (-509, -55), (-512, -59), (-515, -59), (-515, -59),
     (-510, -57), (-510, -57), (-514, -52), (-510, -53), (-510, -53), (-515, -51), (-515, -51), (-515, -51), (-518, -58), (-510, -56), (-513, -59), (-513, -52), (-513, -52), (-515, -52), (-511, -58), (-514, -59), (-511, -53), (-516, -58), (-516, -54),(-509, -54), (-509, -54), (-511, -59),
