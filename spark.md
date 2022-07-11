@@ -20,15 +20,13 @@
     TaskScheduler：将Taskset提交给Worker node集群运行并返回结果
 
 
-### spark 任务提交参数
+### Spark 任务提交参数
 
   spark-submit --master yarn --driver-memory 10G --executor-memory 20G --conf spark.kryoserializer.buffer.max=2000M --conf spark.driver.maxResultSize=4G --executor-cores 3 --num-executors 40 --conf spark.speculation=true  --conf spark.dynamicAllocation.enabled=false --conf spark.yarn.executor.memoryOverhead=4G --properties-file /etc/spark/conf/spark-defaults.conf --queue root.ai.offline --archives hdfs:///data/ai/anaconda3.zip\#anaconda3 --conf spark.dynamicAllocation.enabled=false --conf spark.pyspark.driver.python=/data/apps/modules/anaconda3/envs/python3.6/bin/python3 --conf spark.pyspark.python=./anaconda3/anaconda3/envs/python3.6/bin/python3 efficient_t+1.py
 
-
-
  spark-submit --master yarn **--queue "offline" --driver-memory 10G --executor-memory 15G --num-executors 24 --executor-cores 3** --properties-file /etc/spark/conf/spark-defaults.conf --archives hdfs:///data/ai/anaconda3.zip\#anaconda3 --conf spark.sql.shuffle.partitions=300 --conf spark.pyspark.driver.python=python3 --conf spark.driver.maxResultSize=10G --conf spark.pyspark.python=./anaconda3/anaconda3/envs/python3.6/bin/python3 --jars hdfs:///data/ai/lib/xgb/0.90/xgboost4j-0.90.jar,hdfs:///data/ai/lib/xgb/0.90/xgboost4j-spark-0.90.jar --py-files=hdfs:///data/ai/lib/xgb/0.90/sparkxgb.zip --conf spark.dynamicAllocation.enabled=false eff.py
 
-### spark 参数配置
+### Spark 参数配置
     设置驱动进程的内存
     一般默认即可，如果程序中使用collect算子拉取rdd到驱动节点上，那就需要设置相应的内存大小（大于几十k建议使用广播变量）
     --driver-memory 10G
@@ -77,18 +75,6 @@
     set('spark.port.maxRetries' , 50)
 
 
-
-### 调参心得
-
-由于我们在执行Spark任务是，读取所需要的原数据，数据量太大，导致在Worker上面分配的任务执行数据时所需要的内存不够，直接导致内存溢出了，所以我们有必要增加Worker上面的内存来满足程序运行需要。 在Spark Streaming或者其他spark任务中，会遇到在Spark中常见的问题，典型如Executor Lost相关的问题(shuffle fetch失败，Task失败重试等)。这就意味着发生了内存不足或者数据倾斜的问题。这个目前需要考虑如下几个点以获得解决方案：
-
-    A.相同资源下，增加partition数可以减少内存问题。 原因如下：通过增加partition数，每个task要处理的数据少了，同一时间内，所有正在运行的task要处理的数量少了很多，所有Executor占用的内存也变小了。这可以缓解数据倾斜以及内存不足的压力。 
-
-    B.关注shuffle read阶段的并行数。例如reduce, group 之类的函数，其实他们都有第二个参数，并行度(partition数)，只是大家一般都不设置。不过出了问题再设置一下，也不错。 
-
-    C.给一个Executor核数设置的太多，也就意味着同一时刻，在该Executor的内存压力会更大，GC也会更频繁。我一般会控制在3个左右。然后通过提高Executor数量来保持资源的总量不变。
-
-
 ### Spark MLlib Pipelines
 MLlib中的Pipeline主要受scikit-learn项目的启发，旨在更容易地将多个算法组合成单个管道或工作流，向用户提供基于DataFrame的更高层次的API库，以更方便地构建复杂的机器学习工作流式应用。一个Pipeline可以集成多个任务，如特征变换、模型训练、参数设置等。下面介绍几个重要的概念。
 
@@ -131,17 +117,8 @@ model.extractParamMap().items()            #得到最佳模型的参数
 print({param[0].name: param[1] for param in model.extractParamMap().items()})   #打印参数
 ```
 
-### 常用包
-    import pyspark.sql.functions as F
-    from pyspark.conf import SparkConf
-    from pyspark.context import SparkContext
-    from pyspark.sql import SparkSession
-    from pyspark.sql import Window
-    from pyspark.sql import Row
-    from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
-    from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
 
-### spark dataframe
+### Spark Dataframe
 ```python
 
 更改字段类型
@@ -165,8 +142,12 @@ tmp_df = tmp_df.withColumn('profit_start',F.when(F.col('consumption')==0.5,F.col
 将一行展开为多行  将score按照 ',' 分割，然后对分割后的数组每个元素都 explode 为一行
 df.withColumn('score', F.explode(F.split(df.score, ','))).show()     
 
-将某字段相同，其余字段不同的行合并为一行 ，并将不同的字段组成列表新字段返回
+聚合相同字段data下的number列，返回列表array<int>
 df24.groupBy(['data']).agg(F.collect_list('number').alias('newcol')).show() 
+
+创建键值对,并聚合返回array<map<string,bigint>>
+end3 = end3.withColumn('key',F.create_map(["bike_sn", "bike_24_cnt"]))
+end3 = end3.groupBy(['city_id','station_id','event_day','span_id']).agg(F.collect_list('key').alias('key_list')) 
 
 同上，用于合并多列字段值不同的数据
 df.groupBy("d").agg(*[collect_set(col) for col in ['s','f']]).show()   
@@ -220,7 +201,7 @@ df = spark.createDataFrame(df_rdd,schema=schema_move_in)
 
 ```
 
-### 数据倾斜
+### 数据倾斜问题
 
 最常见的场景：聚合函数groupby(‘city_id’).agg(F.count(df.col_a)),某个key对应的数据量很大的就会造成倾斜
 
@@ -311,3 +292,25 @@ getidUDF = fn.udf(lambda x: x.split('_')[1])
 df = df.withColumn('Col1', getidUDF(fn.col('Col1')))
 df = df.groupBy('Col1').agg(fn.collect_list('Col2').alias('Col2')).rdd.map(row_dealWith).toDF(schema=['Col1', 'Col2'])
 ```
+
+
+### 调参心得
+
+由于我们在执行Spark任务是，读取所需要的原数据，数据量太大，导致在Worker上面分配的任务执行数据时所需要的内存不够，直接导致内存溢出了，所以我们有必要增加Worker上面的内存来满足程序运行需要。 在Spark Streaming或者其他spark任务中，会遇到在Spark中常见的问题，典型如Executor Lost相关的问题(shuffle fetch失败，Task失败重试等)。这就意味着发生了内存不足或者数据倾斜的问题。这个目前需要考虑如下几个点以获得解决方案：
+
+    A.相同资源下，增加partition数可以减少内存问题。 原因如下：通过增加partition数，每个task要处理的数据少了，同一时间内，所有正在运行的task要处理的数量少了很多，所有Executor占用的内存也变小了。这可以缓解数据倾斜以及内存不足的压力。 
+
+    B.关注shuffle read阶段的并行数。例如reduce, group 之类的函数，其实他们都有第二个参数，并行度(partition数)，只是大家一般都不设置。不过出了问题再设置一下，也不错。 
+
+    C.给一个Executor核数设置的太多，也就意味着同一时刻，在该Executor的内存压力会更大，GC也会更频繁。我一般会控制在3个左右。然后通过提高Executor数量来保持资源的总量不变。
+
+
+### 常用包
+    import pyspark.sql.functions as F
+    from pyspark.conf import SparkConf
+    from pyspark.context import SparkContext
+    from pyspark.sql import SparkSession
+    from pyspark.sql import Window
+    from pyspark.sql import Row
+    from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
+    from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType

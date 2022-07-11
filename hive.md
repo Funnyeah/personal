@@ -1,3 +1,4 @@
+### 基础认识
 ?> Hive
 
 &emsp;&emsp;Apache Hive是一个构建于Hadoop(分布式系统基础架构)顶层的数据仓库，注意这里不是数据库。Hive可以看作是用户编程接口，它本身不存储和计算数据；它依赖于HDFS(Hadoop分布式文件系统)和MapReduce(一种编程模型，映射与化简；用于大数据并行运算)。其对HDFS的操作类似于SQL—名为HQL，它提供了丰富的SQL查询方式来分析存储在HDFS中的数据；HQL经过编译转为MapReduce作业后通过自己的SQL 去查询分析需要的内容；这样一来，即使不熟悉MapReduce 的用户也可以很方便地利用SQL 语言查询、汇总、分析数据。而MapReduce开发人员可以把己写的mapper 和reducer 作为插件来支持Hive 做更复杂的数据分析。
@@ -13,7 +14,6 @@ LSM树结构。 HBase 写数据先写到Hlog中，接着到 Memorystore（跳表
 布隆过滤器用于判断一个数据是否存在与hfile文件中（布隆做一个哈希操作判断）对row key 进行布隆操作
 Master 管理region  ddl dml
 
-
 ?> 表在hdfs中的存储方式
 
 分区表改变了Hive对数据存储的组织方式。   
@@ -22,9 +22,12 @@ Master 管理region  ddl dml
 .../employees/country=CA/state=AB           
 .../employees/country=CA/state=BC
 
-?> 创建表
+### 创建删除
+
+?> 创建
 
 ```sql
+-- 创建表
 CREATE TABLE if not exists ai.dws_ai_station_ab_test_mf(    
 city_id int COMMENT '城市id',  
 block_id bigint COMMENT '区块id',  
@@ -42,53 +45,56 @@ model_version string COMMENT '版本')
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\001' STORED AS TEXTFILE;
 ```
-?>删除表
-### 删除表（物理）
+
+?> 删除
 ```sql
+ -- 删除表（物理）
  drop table if exists ai.dwd_block_object_assess_test_da
 ```
-### 删除表所有内容（保留结构）
+
 ```sql
+-- 删除表所有内容（保留结构）
 TRUNCATE table ai.dwd_block_object_assess_test_da
 ```
-### 删除表分区
+
 ```sql
+-- 删除表分区
 alter table  ai.dwd_block_object_assess_test_da drop partition (event_day='20210710')
 ```
-### 删除表分区(分区存在NUll值)
+
 ```sql
+-- 删除表分区(分区存在NUll值)
 ALTER TABLE table_name DROP IF EXISTS PARTITION (event_day='__HIVE_DEFAULT_PARTITION__',pk_month='__HIVE_DEFAULT_PARTITION__')
+
 ```
-?>修改表
-### 修改字段名和字段属性
+### 修改查询
 ```sql
+-- 修改字段名和类型
 ALTER TABLE ai.dws_ai_jw_block_average_order_da        -- 需要更改的库名.表名
 CHANGE COLUMN old_name new_name bigint COMMENT '区块编号'  -- 旧字段名 新字段名 字段类型 备注
 ```
-### 新增字段
+
 ```sql
+-- 新增字段
 alter table table_name add columns(new_column string comment '新增字段') cascade 
  -- 不加cascade更改表 再写入分区数据时，新增列数据为null
 ```
 
-?>查询表
-
-###  查询ai数据库中包含的表
 ```sql
+-- 查询ai数据库中包含的表
 show tables in ai    
 ```
 
-###  查询表中存在的所有分区
 ```sql
+-- 查询表中存在的所有分区
 show partitions ai.ads_ai_jw_block_scene_full_2   
 ```
 
-?>语法
 
-### 官网
+### 语法
 [hive](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF)
 [presto](https://prestodb.io/docs/current/)
-### 基本运算符
+#### 基本运算符
 
 ```sql
 select 10 / 3     
@@ -101,7 +107,7 @@ select 'd'||2, 2||1.5 --return 'd2','21.5'
 -- ||接受数字和字符类型，返回字符类型拼接
 
 ```
-### 比较运算符
+#### 比较运算符
 ```sql
 select 1 = 2, 1 == 2     
 -- 均返回False，同义运算符     
@@ -115,7 +121,7 @@ select 1 <> 2
 select 1 <2 ,1<=2 ,1> 2,1 >= 2   
 -- 大于、小于、大小等于符号， 符号间不能有空格,  若有一方为NULL或均为NULL, 则返回NULL  
 ```
-### 常用函数
+#### 常用函数
 ```sql
 select * from ai.dws_ai_jw_block_flag_da where city_id is null 
 -- xx字段 is null、xx字段 is not null（xx字段为空、不为空）
@@ -179,8 +185,8 @@ select space(10)
 
 ```
 
-### 常用时间函数
-#### presto
+#### 常用时间函数
+presto
 ```sql
 select parse_datetime('20220318', 'yyyyMMdd')
 -- return 2022-03-18 00:00:00.0  #presto 字符串 2 日期date格式
@@ -195,7 +201,7 @@ select format_datetime(from_unixtime(1609167953000/1000),'yyyy-MM-dd')
 select format_datetime(from_unixtime(1609167953694/1000)+ interval '8' hour + interval '30' MINUTE,'yyyy-MM-dd hh:mm:ss') 
 -- return 2020-12-29 07:35:53  format_datetime 还可以加时间偏移
 ```
-#### hive
+hive
 ```sql
 select from_unixtime(1609167953694/1000)   
 -- 秒级时间戳 2 日期date格式(date格式本质就是字符串)
@@ -211,7 +217,7 @@ select cast('2022-04-20' as TIMESTAMP)- interval '1' day  , cast('2022-04-20' as
 -- return 2022-04-19 00:00:00	2022-04-18 23:30:00 用日期做时间偏移 和presto用法相同
 ```
 
-### 其他时间函数 
+#### 其他时间函数 
 ```sql
 select  to_date("1970-01-01 00:00:00")    
 -- return "1970-01-01"   返回日期date格式的 年月日
@@ -243,7 +249,7 @@ select months_between('1997-02-28 10:30:00', '1996-10-30')
 
 ```
 
-### 条件表达式
+#### 条件表达式
 ```sql
 select if(5>0,111,000) as ff      
 -- return 111   if(条件判断，T_value,F_value)
@@ -268,7 +274,7 @@ select case  when block_hot>200 then 9 when block_hot>100 then 6 when block_hot>
 
 ```
 
-### 分组聚合函数
+#### 分组聚合函数
 ```sql
 with tmp as (
 select 1001 station_id, 1 win_id union 
@@ -284,8 +290,24 @@ select xx,group_concat(win_id) from tb group by xx
 
 select station_id,collect_list(win_id) from tmp group by station_id
 -- hive return 1001  [1,2,3] collect_list()返回聚合列表  collect_set() 列表去重
+
+select sum() over (partition by col_a,b order by col_c,d range between xx and xx )
+-- sum()求和  xx：向前使用preceding，向后使用following，当前行使用current row
+-- unbounded preceding and current row 表示当前行和之前所有行
+-- 不写range between 函数也等同于当前行和之前所有行
+
+count(*) --行数,包括null的所有行
+count(1) --行数,不包含null的所有行
+count(distinct col_a,col_b) -- 不包含null的所选去重行数
+min()、max()、avg() --最大、小、平均
+
+var_pop() 有偏方差、var_samp() 无偏方差、stddev_pop()有偏标准差、stddev_samp()无偏标准差、covar_pop()有偏协方差、covar_samp()无偏协方差、corr(col1, col2) 皮尔逊相关系数
+
+percentile(BIGINT col, p) -- 返回整形列的分位数值,0<=p<=1，返回值可为浮点数
+percentile_approx(DOUBLE col, p [, B]) --返回浮点型列分位数值,0<=p<=1,B为近似计算的参数，越小越精确代价越高
+
 ```
-### 字符串拼接函数
+#### 字符串拼接函数
 ```sql
 select concat_ws('-',cast(123 as string),cast(9 as string))   
 -- return '123-9' 字段类型必须为string 或者 array<string> , 可拼接多列
@@ -296,7 +318,7 @@ select 12||'123'
 select CONCAT_WS('|',ARRAY('1','2','3') ),array(1,2,3)
 -- return 1|2|3	 [1,2,3]
 ```
-### 字符串分割函数
+#### 字符串分割函数
 ```sql
 select split('abcde','c'),   -- 返回 ['ab','de']
 split('ab_cd_e','\_')[0] ,  -- 返回 'ab'     特殊字符作为分隔符需用 \ 转义
@@ -319,7 +341,7 @@ select replace('okns','k','1')
 
 ```
 
-### 字符串解析函数
+#### 字符串解析函数
 ```sql
 regexp_extract(str, regexp， idx) 
     str是被解析的字符串或字段名
@@ -342,7 +364,7 @@ select regexp_extract_all('sfsf8sdd', '[0-9]*\.?[0-9]+') [1]   -- 8      * 表�
 
 ```
 
-### 复杂类型
+#### 复杂类型
 ```sql
 1.map
 with tmp as (select  map('s1',8,1,2,3,4,5,'s2') mp )
@@ -356,9 +378,47 @@ select EXPLODE(mp) from tmp
 select tf.*,t.* from (select 0 xx)t lateral view POSEXPLODE(array(1,2,3,4)) tf as idx,value 
 -- POSEXPLODE 多返回一列下标序号
 
+with tmp as (
+   select  map('start_uasge',array('0'),'end_usage',array('3'),'span_nums',array('2'), 'span_list',array('0~4', '4~12','12~20', '20~24')) span_info union all
+   select  map('start_uasge',array('3'),'end_usage',array('5'),'span_nums',array('4'), 'span_list',array('0~4', '4~8','8~12', '12~16','16~20','20~24')) span_info union all
+   select  map('start_uasge',array('5'),'end_usage',array('8'),'span_nums',array('6'), 'span_list',array('0~4', '4~8','8~10', '10~12','12~14','14~16','16~20','20~24')) span_info union all
+   select  map('start_uasge',array('8'),'end_usage',array('999'),'span_nums',array('8'), 'span_list',array('0~4', '4~6','6~8', '8~10','10~12','12~14','14~16','16~18','18~20','20~24')) span_info          
+ ),
+
+parms as (
+ select 
+     span_nums,
+     hour_span,
+     cast(split(hour_span,'~')[0] as int) start_hour,
+     cast(split(hour_span,'~')[1] as int) - 1 end_hour,
+     concat(
+         cast(cast(split(hour_span,'~')[0] as int)*2 as string) ,
+         '~',
+         cast(cast(split(hour_span,'~')[1] as int)*2 - 1 as string)) span
+ from (
+     select *
+        from (
+         select 
+             cast(span_info['span_nums'][0] as int) span_nums,
+             cast(span_info['start_uasge'][0] as int) start_uasge,
+             cast(span_info['end_usage'][0] as int) end_usage,
+             span_info['span_list'] span_list
+         from tmp
+         )t lateral view explode(t.span_list) tmptd as hour_span
+  )x 
+)
+select * from parms
+-- map array explode 的联合使用示例
+
 2.array
-select array(1,2,3),array(1,2,3)[0]
--- 返回[1,2,3], 1
+select array(1,2,3),array(1,2,3)[0],array(1.2,'x')
+-- 返回[1,2,3], 1, ['1.2','x']  
+
+select array(1,'2','x',1.2) x
+union 
+select array(1,2)
+-- 返回error union时字段类型需一致，前者array<string>,后者array<int>，把后者改一个string参数就可自动类型转换
+
 
 3.struct
 select
@@ -397,7 +457,7 @@ T1,...,Tn/r    stack(int r,T1 V1,...,Tn/r Vn)    Breaks up n values V1,...,Vn in
 
 ```
 
-### 排序与窗口函数
+#### 排序与窗口函数
 ```sql
 1.row_number() 默认由小到大排序，返回顺序号
 2.rank() 默认由小到大排序，同值共号，返回断层的顺序号（某列[5,7,7,10],返回1,2,2,4）
@@ -408,86 +468,20 @@ T1,...,Tn/r    stack(int r,T1 V1,...,Tn/r Vn)    Breaks up n values V1,...,Vn in
 6.lag(col_a,1) 返回窗口内向上1行数据的该字段值
 ```
 
-### hive与presto的语法区别
+#### hive与presto语法区别
 ```sql
 select * from  (select * from tb)  -- presto 
 select * from  (select * from tb)x -- hive 需加别名
+
+-- presto列表下表从1开始，hive列表下表标从0开始
 ```
 
-### 分组聚合函数2
+
+### 工具sql
+
+#### 计算两个经纬度之间距离 
 ```sql
-select sum() over (partition by col_a,b order by col_c,d range between xx and xx )
--- sum()求和  xx：向前使用preceding，向后使用following，当前行使用current row
--- unbounded preceding and current row 表示当前行和之前所有行
--- 不写range between 函数也等同于当前行和之前所有行
-
-count(*) --行数,包括null的所有行
-count(1) --行数,不包含null的所有行
-count(distinct col_a,col_b) -- 不包含null的所选去重行数
-min()、max()、avg() --最大、小、平均
-
-var_pop() 有偏方差、var_samp() 无偏方差、stddev_pop()有偏标准差、stddev_samp()无偏标准差、covar_pop()有偏协方差、covar_samp()无偏协方差、corr(col1, col2) 皮尔逊相关系数
-
-percentile(BIGINT col, p) -- 返回整形列的分位数值,0<=p<=1，返回值可为浮点数
-percentile_approx(DOUBLE col, p [, B]) --返回浮点型列分位数值,0<=p<=1,B为近似计算的参数，越小越精确代价越高
-
-```
-
-### mysql数据读取+spark计算
-```python
-import pymysql
-data=[]
-# 打开数据库连接
-db = pymysql.connect(host='10.100.45.131',
-        port = 3306,
-        user='ulb_mozi_read',
-        passwd='!L5rY6g#H',
-        db ='mozi' )
- 
-# 使用 cursor() 方法创建一个游标对象 cursor
-cursor = db.cursor()
-# 使用 execute()  方法执行 SQL 查询 
-cursor.execute("SELECT * from jw_block_station where block_version_code=21")
-data.extend(cursor.fetchall())
-df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_id','block_version_code','create_time','update_time'])
-```
-
-### grafana 可视化画图
-```sql
-— 画多边形区域
-SELECT
-  now() as time,
-  h3_edge as pos,
-  'polygon' as type,
-  concat(
-    '{"content": "order_sn:',
-    cast(order_sn as VARCHAR),
-    '", "option":{"strokeColor":"#fa3300","fillColor":"#ee2c2c","strokeWeight":5,"fillOpacity":0.3},"isStroke":true}'
-  ) as config
-from
-  ai.dws_ai_order_visual_yf 
-where
-city_id = $city_id and
-  event_day='20220124'
-
-— 画制定半径的圆
-select  now() as time, 'circle' as type, 20 as  radius,  split(start_point,'|')[1] as longitude,   split(start_point,'|')[2] as latitude,   concat('{"option":{"fillColor":', cast( (ln(10000)+1)*10  as varchar), '}, "isStroke":false }') as config  from  ai.dws_ai_order_visual_yf where  city_id = $city_id and   event_day='20220124'
-
-— 画点
-select  now() as time, 'Point' as type, '112.778399,32.134825' as pos 
-
-— content显示字段内容
-select now() as time, 'circle' as type, 10 as radius, split(point,'|')[1] as longitude, split(point,'|')[2] as latitude, concat('{"content": "station_id:', cast(station_id as VARCHAR ), ',' , 'block_id:', cast(block_id as VARCHAR ),',','order_cnt:',cast(order_cnt as VARCHAR ), ' ", "option":{"fillColor":', '"#0000FF"', '}, "isStroke":false, "fillOpacity":0 }') as config from ai.dws_ai_jw_station_dispatch_detail_da where event_day = '$event_day' and city_id = $city_id and is_dispatch=1 and is_blind=1 and status=0
-
-- 画线 polyline
-```
-
-
-
-?>工具sql
-
-### 计算两个经纬度之间距离 hive & presto
-```sql
+-- hive & presto
 with tmp as (
   select
     109.67249220637174 b_lon,
@@ -505,7 +499,7 @@ from
   tmp
 ```
 
-### 计算当前日期对应星期几 hive & presto
+#### 计算当前日期对应星期几 
 ```sql
 with tmp as (
   select
@@ -543,8 +537,9 @@ select
 from
   tmp
 ```
-### 一行转多行 hive
+#### 一行转多行 
 ```sql
+-- hive
 with tmp as (
    select '[["100605096","113.54398085147338","26.75429268784589","25","42"],["100605521","113.54396563814427","26.75428509464191","52","88"]]' res
 )
@@ -555,7 +550,7 @@ select cid, res_new from (
 --  hive中的']'等特殊字符转义需要三个反斜杠（根据情况可能需要多个，在pyspark中sql就需要4个了）
 ```
 
-### 生成序列数 hive & presto
+#### 生成序列数 
 ```sql
 -- hive
 select tmp.*,t.* from 
@@ -567,14 +562,14 @@ id, s from (  select 2 as id )
 cross join 
 UNNEST(SEQUENCE(0,10, 2)) as t ( s )
 ```
-### json格式解析
+#### json格式解析
 ```sql
 -- hive
 get_json_object(json_col,'$.xxx') 
 -- presto mysql
 json_extract(json_col, '$[*].xxx')
 ```
-### 防止小文件产生
+#### 防止小文件产生
 ```python
 # distribute by
     sql_str = f"""
@@ -602,7 +597,7 @@ json_extract(json_col, '$[*].xxx')
         ai.dws_ai_jw_physics_move_car_da where event_day = '{event_day}' """
     spark.sql(sql_str)
 ```
-?> hive基础
+### 编辑器属性设置
 
 [概述](https://cloud.tencent.com/developer/article/1530056)
 
@@ -623,3 +618,34 @@ hive任务减少小文件，Map-only的任务结束时合并小文件：
 
     set hive.merge.smallfiles.avgsize=1024000000
 
+
+
+### grafana 可视化画图
+```sql
+— 画多边形区域
+SELECT
+  now() as time,
+  h3_edge as pos,
+  'polygon' as type,
+  concat(
+    '{"content": "order_sn:',
+    cast(order_sn as VARCHAR),
+    '", "option":{"strokeColor":"#fa3300","fillColor":"#ee2c2c","strokeWeight":5,"fillOpacity":0.3},"isStroke":true}'
+  ) as config
+from
+  ai.dws_ai_order_visual_yf 
+where
+city_id = $city_id and
+  event_day='20220124'
+
+— 画制定半径的圆
+select  now() as time, 'circle' as type, 20 as  radius,  split(start_point,'|')[1] as longitude,   split(start_point,'|')[2] as latitude,   concat('{"option":{"fillColor":', cast( (ln(10000)+1)*10  as varchar), '}, "isStroke":false }') as config  from  ai.dws_ai_order_visual_yf where  city_id = $city_id and   event_day='20220124'
+
+— 画点
+select  now() as time, 'Point' as type, '112.778399,32.134825' as pos 
+
+— content显示字段内容
+select now() as time, 'circle' as type, 10 as radius, split(point,'|')[1] as longitude, split(point,'|')[2] as latitude, concat('{"content": "station_id:', cast(station_id as VARCHAR ), ',' , 'block_id:', cast(block_id as VARCHAR ),',','order_cnt:',cast(order_cnt as VARCHAR ), ' ", "option":{"fillColor":', '"#0000FF"', '}, "isStroke":false, "fillOpacity":0 }') as config from ai.dws_ai_jw_station_dispatch_detail_da where event_day = '$event_day' and city_id = $city_id and is_dispatch=1 and is_blind=1 and status=0
+
+- 画线 polyline
+```
