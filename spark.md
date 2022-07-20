@@ -133,6 +133,9 @@ df.filter(F.col('col_a')>0)
 将旧字段改为新字段名(parms旧，parms新)
 df.withColumnRenamed('event_day','bike_event_day')
 
+改名方法2
+df.select(['event_day','bike_event_day']).toDF('ed','bed')
+
 expr函数可使用hive语法，此处为将日期date格式转为字符串
 od = od.withColumn('st_event_day',F.expr("FROM_UNIXTIME(UNIX_TIMESTAMP(cast(to_date(start_time) as string),'yyyy-mm-dd'),'yyyymmdd')"))
 
