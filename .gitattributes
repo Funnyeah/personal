@@ -1,1 +1,2 @@
 xgbresult_in_lxh_0521_weight_model_2.csv filter=lfs diff=lfs merge=lfs -text
+精细化模型/** filter=lfs diff=lfs merge=lfs -text
