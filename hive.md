@@ -303,6 +303,14 @@ min()、max()、avg() --最大、小、平均
 
 var_pop() 有偏方差、var_samp() 无偏方差、stddev_pop()有偏标准差、stddev_samp()无偏标准差、covar_pop()有偏协方差、covar_samp()无偏协方差、corr(col1, col2) 皮尔逊相关系数
 
+select 
+  city_id,
+  percentile(order_in, 0.9) max_p,
+  COLLECT_LIST(order_in) debug_list
+from
+  span_in_out_da
+group by
+  city_id
 percentile(BIGINT col, p) -- 返回整形列的分位数值,0<=p<=1，返回值可为浮点数
 percentile_approx(DOUBLE col, p [, B]) --返回浮点型列分位数值,0<=p<=1,B为近似计算的参数，越小越精确代价越高
 
