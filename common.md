@@ -112,5 +112,41 @@ Tips: 一定要cd到项目文件下再创建分支
     from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
     from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
 
+### jupyter使用规范
 
+创建用户脚本
+```python
+useradd -g ai ai.xxx
+sudo su - ai.xxx
+cd /data/apps/modules/jupyter_multi_users/shell
+./init_jupyter_user.sh xxx
+```
+
+启动用户jupyter脚本
+```python
+#用户对应的端口从记录中查找
+sudo su - ai.xxx
+cd /data/apps/modules/jupyter_multi_users/shell
+./start_jupyter_user.sh xxx 8700
+```
+
+重启jupyter客户端
+```python
+#切换到要关停jupyter的用户
+sudo su - ai.xxx
+#进入到对应用户的jupyter目录
+cd /data/apps/modules/jupyter_multi_users/xxx/jupyter
+#查看当前用户jupyter所占用的端口
+jupyter notebook list
+#停止对应得jupyter占用的端口
+jupyter notebook stop 8888
+或者
+#通过端口获得pid
+lsof -n -i4TCP:[port-number]
+#删除进程
+kill -9 [PID]
+#重新启动对应用户得jupyter
+cd /data/apps/modules/jupyter_multi_users/shell
+./start_jupyter_user.sh xxx 8888
+```
     

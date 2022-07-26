@@ -470,21 +470,27 @@ res = tree.query_ball_point((0,0), 3)
     make_tar_file(dir_name, tar_file_name, ignore)
 
 ### 获取车站半径26m内的所有13级h3列表
+    import geog
+    from h3 import h3
+    import numpy as np
+    from shapely import geometry
+    from coord_convert.transform import wgs2gcj, wgs2bd, gcj2wgs, gcj2bd, bd2wgs, bd2gcj
+
     def get_station_round_block_func(x):
         x_dict = x.asDict()
-        
+
         station_point = x_dict['station_point']
         lon, lat = bd2wgs(float(station_point.split('|')[0]), float(station_point.split('|')[1]))
         station_h3_index = h3.geo_to_h3(lat, lon, 11)  # 车站对应11级h3
         x_dict['station_block_id'] = station_h3_index
 
         # 车站半径25m内所有h3 13级索引
-        p = shapely.geometry.Point([lon, lat]) # 圆
+        p = geometry.Point([lon, lat]) # 圆
         n_points = 20
         d = 26  # meters
-        angles = np.linspace(0, 360, n_points)  #圆分20个角度
-        polygon = geog.propagate(p, angles, d)  #得到圆的近似多边形
-        geo_js = shapely.geometry.mapping(shapely.geometry.Polygon(polygon)) #写成geojson格式
+        angles = np.linspace(0, 360, n_points)  #角度分20个
+        polygon = geog.propagate(p, angles, d)  #得到圆的近似多边形,这里的p只接受经纬度
+        geo_js = geometry.mapping(geometry.Polygon(polygon)) #写成geojson格式
         block_list = h3.polyfill(geo_js, 13, True) # 获取图形内包含的所有13等级h3
 
         x_dict['block_id_list'] = list(block_list)
