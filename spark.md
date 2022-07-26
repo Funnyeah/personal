@@ -120,37 +120,43 @@ print({param[0].name: param[1] for param in model.extractParamMap().items()})   
 
 ### Spark Dataframe
 ```python
+删除字段
+df = df.drop('age')
+
+删除null值
+df = df.na.drop()  # 扔掉任何列包含na的行
+df = df.dropna(subset=['col_name1', 'col_name2'])  # 扔掉col1或col2中任一一列包含na的行
 
 更改字段类型
-df.withColumn('age',df.age.cast('string'))  
+df = df.withColumn('age',df.age.cast('string'))  
 
 指定列填充缺失值
-df.na.fill({ 'age' : 50, 'name' : 'x'}) 
+df = df.na.fill({ 'age' : 50, 'name' : 'x'}) 
 
 filter函数，此处将col_a列大于0的数据筛选出来
-df.filter(F.col('col_a')>0)
+df = df.filter(F.col('col_a')>0)
 
 将旧字段改为新字段名(parms旧，parms新)
-df.withColumnRenamed('event_day','bike_event_day')
+df = df.withColumnRenamed('event_day','bike_event_day')
 
 改名方法2
-df.select(['event_day','bike_event_day']).toDF('ed','bed')
+df = df.select(['event_day','bike_event_day']).toDF('ed','bed')
 
 expr函数可使用hive语法，此处为将日期date格式转为字符串
-od = od.withColumn('st_event_day',F.expr("FROM_UNIXTIME(UNIX_TIMESTAMP(cast(to_date(start_time) as string),'yyyy-mm-dd'),'yyyymmdd')"))
+df = df.withColumn('st_event_day',F.expr("FROM_UNIXTIME(UNIX_TIMESTAMP(cast(to_date(start_time) as string),'yyyy-mm-dd'),'yyyymmdd')"))
 
 when函数，如果条件为真，则赋某值，否则赋另一个值
-tmp_df = tmp_df.withColumn('profit_start',F.when(F.col('consumption')==0.5,F.col('span_start')).otherwise(F.col('wait_start_time')))
+df = df.withColumn('profit_start',F.when(F.col('consumption')==0.5,F.col('span_start')).otherwise(F.col('wait_start_time')))
 
 将一行展开为多行  将score按照 ',' 分割，然后对分割后的数组每个元素都 explode 为一行
-df.withColumn('score', F.explode(F.split(df.score, ','))).show()     
+df = df.withColumn('score', F.explode(F.split(df.score, ','))).show()     
 
 聚合相同字段data下的number列，返回列表array<int>
-df24.groupBy(['data']).agg(F.collect_list('number').alias('newcol')).show() 
+df.groupBy(['data']).agg(F.collect_list('number').alias('newcol')).show() 
 
 创建键值对,并聚合返回array<map<string,bigint>>
-end3 = end3.withColumn('key',F.create_map(["bike_sn", "bike_24_cnt"]))
-end3 = end3.groupBy(['city_id','station_id','event_day','span_id']).agg(F.collect_list('key').alias('key_list')) 
+df = df.withColumn('key',F.create_map(["bike_sn", "bike_24_cnt"]))
+df = df.groupBy(['city_id','station_id','event_day','span_id']).agg(F.collect_list('key').alias('key_list')) 
 
 同上，用于合并多列字段值不同的数据
 df.groupBy("d").agg(*[collect_set(col) for col in ['s','f']]).show()   
