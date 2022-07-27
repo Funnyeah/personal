@@ -197,9 +197,9 @@ select from_unixtime(1647532800)
 select REPLACE(SUBSTRING(cast('2022-01-16 05:01:08.0' as VARCHAR),1,10),'-','')
 -- return 20220116  #presto 日期date格式 2 转字符串
 select format_datetime(from_unixtime(1609167953000/1000),'yyyy-MM-dd')  
--- return 2020-12-18 #presto 正规的日期date格式 2 字符串
-select format_datetime(from_unixtime(1609167953694/1000)+ interval '8' hour + interval '30' MINUTE,'yyyy-MM-dd hh:mm:ss') 
--- return 2020-12-29 07:35:53  format_datetime 还可以加时间偏移
+-- return 2020-12-18 #presto 正规的日期date格式 2 字符串, 字符串转date格式用第一个
+select format_datetime(from_unixtime(1609167953694/1000)+ interval '8' hour + interval '30' MINUTE,'yyyy-MM-dd HH:mm:ss') 
+-- return 2020-12-29 07:35:53  format_datetime 还可以加时间偏移 hh为12小时制，HH为24小时制
 ```
 hive
 ```sql
@@ -577,6 +577,27 @@ get_json_object(json_col,'$.xxx')
 -- presto mysql
 json_extract(json_col, '$[*].xxx')
 ```
+
+#### 威尔逊区间平滑
+```sql
+  with smooth_tmp as (
+      select city_id,
+      block_id,
+      station_id,
+      window_id,
+      day_of_week,
+      (a-c)/d* window_cnt/window_consumption  eff_1d
+      from (
+          select *,
+          order_cnt*1.0/window_cnt + 1.96*1.96/(2 * window_cnt) a,
+          1.96 * sqrt((order_cnt*1.0/window_cnt) * (1-(order_cnt*1.0/window_cnt))/window_cnt + 1.96*1.96/(4*window_cnt*window_cnt) ) c,
+          1+ 1.96*1.96/window_cnt d
+          from tmp
+      )x
+  )
+  select * from smooth_tmp
+```
+
 #### 防止小文件产生
 ```python
 # distribute by
