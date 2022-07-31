@@ -1,3 +1,4 @@
+
 ### XGBoost参数
     XGBoost的作者把所有的参数分成了三类：
     1、通用参数：宏观函数控制。
@@ -137,10 +138,16 @@
     4.不适合处理超高维特征数据。对于中低维数据具有很好的处理速度和精度，但是对于例如大规模图像物体识别，或者是推荐算法的某些场景中会出现的超高维特征的数据就无能为力了，这时候我们就需要借助于深度学习等算法
 
 ### lightGBM
+
+[原理](https://zhuanlan.zhihu.com/p/99069186)
+[详解](https://mp.weixin.qq.com/s/XxFHmxV4_iDq8ksFuZM02w)
+[代码](https://github.com/Microstrong0305/WeChat-zhihu-csdnblog-code)
+
     优化：
-    1.基于 Histogram 的决策树算法
-    2.带深度限制的 Leaf-wise 的叶子生长策略
-    3.直方图做差加速
-    4.直接支持类别特征(Categorical Feature)
-    4.Cache 命中率优化
-    5.基于直方图的稀疏特征优化
+    1.基于 Histogram 的决策树算法,直方图做差加速,基于直方图的稀疏特征优化
+    2.单边梯度采样 Gradient-based One-Side Sampling(GOSS)：使用GOSS可以减少大量只具有小梯度的数据实例，这样在计算信息增益的时候只利用剩下的具有高梯度的数据就可以了，相比XGBoost遍历所有特征值节省了不少时间和空间上的开销。
+    3.互斥特征捆绑 Exclusive Feature Bundling(EFB)：使用EFB可以将许多互斥的特征绑定为一个特征，这样达到了降维的目的。
+    4.带深度限制的Leaf-wise的叶子生长策略：大多数GBDT工具使用低效的按层生长 (level-wise) 的决策树生长策略，因为它不加区分的对待同一层的叶子，带来了很多没必要的开销。实际上很多叶子的分裂增益较低，没必要进行搜索和分裂。LightGBM使用了带有深度限制的按叶子生长 (leaf-wise) 算法。
+    5.直接支持类别特征(Categorical Feature)
+    6.支持高效并行：特征并行、数据并行
+    7.Cache命中率优化

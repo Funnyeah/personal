@@ -226,7 +226,11 @@ df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_
 ### 坐标系转换
 
 ```python
-# 坐标系转换
+下述两个方法相同
+# 1
+from coord_convert.transform import wgs2gcj, wgs2bd, gcj2wgs, gcj2bd, bd2wgs, bd2gcj
+
+# 2
 x_pi = 3.14159265358979324 * 3000.0 / 180.0
 pi = 3.1415926535897932384626  # π
 a = 6378245.0  # 长半轴
@@ -495,3 +499,50 @@ res = tree.query_ball_point((0,0), 3)
 
         x_dict['block_id_list'] = list(block_list)
         return Row(**x_dict)
+
+### ELO等级分
+```python
+#定义elo score 等级评分类
+class EloScore:
+    #初始积分
+    ELO_RATING_DEFAULT = 1500
+
+    #定义初始化方法
+    def __init__(self,Sa,ratingA=ELO_RATING_DEFAULT,ratingB=ELO_RATING_DEFAULT):
+        self.Sa = Sa
+        self.ratingA = ratingA
+        self.ratingB = ratingB
+      
+    #定义阈值 k值
+    def computeK(self,rating):
+        if rating >=2400:
+            return 16
+        elif rating >= 2100:
+            return 24
+        else:
+            return 36
+
+    #使用公式推算
+    def computeScore(self,):
+        Eb_S = 1 / (1+pow(10,(self.ratingA-self.ratingB)/400))  #B对A的胜概率
+        Ea_S = 1 - Eb_S #A对B的胜概率
+        return Ea_S,Eb_S
+    
+    def balanceK(self,):
+        avg_K = (self.computeK(self.ratingA) + self.computeK(self.ratingB))/2
+        return avg_K
+    
+    def main(self,):
+        K = self.balanceK()
+        Ea_S, Eb_S = self.computeScore()
+        
+        Sa, Sb = self.Sa , 1 - self.Sa    # 实际胜负 WIN = 1, LOSS = 0, TIE = 0.5
+        
+        Ra = K * (Sa - Ea_S)
+        Rb = K * (Sb - Eb_S)
+        return Ra,Rb
+if __name__ == "__main__":
+
+    eloscore = EloScore(0.5,1800,1500)
+    print(eloscore.main())
+```
