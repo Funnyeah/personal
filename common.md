@@ -52,12 +52,12 @@ Tips: 一定要cd到项目文件下再创建分支
     hadoop fs -put /tf/liuxuanheng/tf_0910_window_5_retrain.h5 hdfs:///data/ai/models/liuxuanheng/TFrecord/tf_20210910_window_5_retrain.h5
     
     # 加载hdfs文件到hive表
-    load data inpath 'hdfs:///data/ai/models/liuxuanheng/ex_table_test/20210808/*.csv' overwrite into table ai.ex_table_test
+    load data inpath 'hdfs:///data/ai/models/liuxuanheng/ex_table_test/20210808/*.csv' overwrite into table ai.ex_table_test;
     
     # 加载本地文件到hive表
-    load data local inpath '/data/apps/modules/jupyter_multi_users/liuxuanheng/jupyter/city_cell_recon/city_cell_order_not_full/*.csv' overwrite into table ai.ex_table_test
+    load data local inpath '/data/apps/modules/jupyter_multi_users/liuxuanheng/jupyter/city_cell_recon/city_cell_order_not_full/*.csv' overwrite into table ai.ex_table_test;
 
-    # 上述两个加载文件方式必须使用 jupyter 终端输入 hive 进入交互模式输入命令才可执行，hue里执行会报错，而且想要批量导入数据，可直接用*.csv匹配所有csv文件
+    # 上述两个加载文件方式必须使用 jupyter 终端输入 hive 进入交互模式输入命令才可执行，hue里执行会报错，而且想要批量导入数据，可直接用*.csv匹配所有csv文件, 记得加分号;表示语句结束
 
     # 批量本地文件传至hdfs脚本, $1/ 表示绝对路径，不加会找不到
     ===

@@ -10,3 +10,4 @@
    - 论文
         - [wide&deep](/paper/wide&deep.md)
         - [youtube-DNN](/paper/youtube-DNN.md)
+        - [FM/FFM](/paper/FM.md)
