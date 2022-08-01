@@ -24,10 +24,13 @@ Master 管理region  ddl dml
 
 ### 创建删除
 
+[相关1](https://blog.csdn.net/weixin_45788152/article/details/105615481?utm_term=hive%20%E5%A4%96%E9%83%A8%E8%A1%A8%E5%8A%A0%E8%BD%BD%E6%95%B0%E6%8D%AE&utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~sobaiduweb~default-1-105615481-null-null&spm=3001.4430)
+[相关2](https://blog.csdn.net/henrrywan/article/details/90266172?spm=1001.2101.3001.6650.3&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3-90266172-blog-82690198.pc_relevant_sortByStrongTime&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3-90266172-blog-82690198.pc_relevant_sortByStrongTime&utm_relevant_index=6)
+
 ?> 创建
 
 ```sql
--- 创建表
+-- 内部表
 CREATE TABLE if not exists ai.dws_ai_station_ab_test_mf(    
 city_id int COMMENT '城市id',  
 block_id bigint COMMENT '区块id',  
@@ -40,10 +43,35 @@ new_md5_id string COMMENT '区块新车站坐标md5值, 无新车站为N',
 stgy_model string COMMENT '策略：A、B'
 )
 COMMENT '车站AB策略表'
-PARTITIONED BY (
-model_version string COMMENT '版本')
+PARTITIONED BY (model_version string COMMENT '版本')
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\001' STORED AS TEXTFILE;
+
+-- 外部表
+create external table if not exists ai.dws_etp_test_da
+(
+city_id int COMMENT '城市id',
+score string COMMENT '测试分'
+)
+COMMENT 'etp测试表'
+PARTITIONED BY (event_day STRING COMMENT '数据日期')
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+location 'hdfs:///data/ai/models/liuxuanheng/data'
+TBLPROPERTIES ('create_owner' = 'liuxuanheng');
+
+-- 小记
+1.新创建表尽量用外部表,加EXTERNAL字段,外部表不会加载数据到Hive的默认仓库（挂载数据）,减少了数据的传输,同时还能和其它外部表共享数据。使用外部表,Hive不会修改源数据,不用担心数据损坏或丢失。Hive在删除外部表时,删除的只是表结构,而不会删除数据。
+2.新建表存储格式尽量使用PARQUET格式（性能好）;如果csv/txt文件需倒入hive,用TEXTFILE格式,列分隔符用',',否则会报格式错误
+3.ROW FORMAT DELIMITED  -- 下列四行分割关键字声明
+FIELDS TERMINATED BY '\001'  -- 用于分隔字段（列）,在CREATE TABLE语句中可以\001表示。其他文本文件用','，或是用'\t' 制表符分割
+COLLECTION ITEMS TERMINATED BY '\002' -- 用于分隔ARRARY或者STRUCT中的元素，或用于MAP中键-值对之间的分隔,用\002表示
+MAP KEYS TERMINATED BY '\003' -- 用于MAP中键和值之间的分隔。在CREATE TABLE 语句中可以使用八进制编码\003表示
+LINES TERMINATED BY '\n'  -- 行分割，目前只支持\n
+STORED AS TEXTFILE;  -- 存储格式 PARQUET(默认)、TEXTFILE、sequencefile（文件需压缩）
+4.TBLPROPERTIES 指定创建者
+5.EXTERNAL关键字可以让用户创建一个外部表，在建表的同时指定一个指向实际数据的路径（LOCATION），Hive 创建内部表时，会将数据移动到数据仓库指向的路径；若创建外部表，仅记录数据所在的路径，不对数据的位置做任何改变。在删除表的时候，内部表的元数据和数据会被一起删除，而外部表只删除元数据，不删除数据。
+
 ```
 
 ?> 删除

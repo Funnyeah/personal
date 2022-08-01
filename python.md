@@ -196,6 +196,23 @@ cursor.execute("SELECT * from jw_block_station where block_version_code=21")
 data.extend(cursor.fetchall())
 df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_id','block_version_code','create_time','update_time'])
 ```
+### pyhive数据读取+pandas格式
+```python
+from pyhive import hive
+import pandas as pd
+HOST = "10.100.168.143"  # backup "10.100.164.150"
+PORT = 10000
+USERNAME = "liwenyi"
+database='ai'
+conn = hive.Connection(host=HOST, port=PORT, username=USERNAME, database=database)
+
+def fetch_order():
+    query = "SELECT * from ai.dws_etp_test_da"        
+    df = pd.read_sql(query, conn)
+    return df
+fetch_order()
+
+```
 
 ### 全局配置文件读取
     # transfer.conf 配置文件

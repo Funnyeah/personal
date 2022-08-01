@@ -30,8 +30,12 @@ Tips: 一定要cd到项目文件下再创建分支
 
 ### 4.hadoop shell操作
 
-    # 级连删除目录下所有文件
+    # 单个删除、级连删除目录下所有文件
+    hadoop fs -rm hdfs:///data/ai/models/liuxuanheng/TFrecord/20210906_prediction/t1.txt
     hadoop fs -rmr hdfs:///data/ai/models/liuxuanheng/TFrecord/20210906_prediction
+
+    # 文件内容显示
+    hadoop fs -cat hdfs:///data/ai/models/liuxuanheng/test.csv
 
     # 显示目录下所有文件
     hadoop fs -ls hdfs:///data/ai/models/online/in 
