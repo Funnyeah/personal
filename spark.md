@@ -323,3 +323,21 @@ df = df.groupBy('Col1').agg(fn.collect_list('Col2').alias('Col2')).rdd.map(row_d
     from pyspark.sql import Row
     from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
     from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
+
+### 快速demo
+    import datetime
+    import warnings
+    from pyspark.sql import functions as F
+    from pyspark.conf import SparkConf
+    from pyspark.sql import SparkSession
+    warnings.filterwarnings("ignore")
+    from pyspark.sql.types import LongType, IntegerType,Row, StructType, StructField, StringType, TimestampType, FloatType
+
+    def open_spark_session(app_name="ai-train"):
+        conf = (SparkConf().setMaster("local").setAppName(app_name).set("spark.yarn.queue", "offline").set(
+            "spark.sql.crossJoin.enabled", "true").set("hive.exec.dynamic.partition.mode", "nonstrict"))
+        spark = SparkSession.builder.config(conf=conf).getOrCreate()
+        return spark
+
+    spark = open_spark_session(app_name='dws_ai_dispatch_city_span_da')
+    spark.stop()
