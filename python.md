@@ -195,24 +195,51 @@ cursor = db.cursor()
 cursor.execute("SELECT * from jw_block_station where block_version_code=21")
 data.extend(cursor.fetchall())
 df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_id','block_version_code','create_time','update_time'])
+cursor.close()
+
 ```
-### pyhive数据读取+pandas格式
+### pyhive数据读取
 ```python
 from pyhive import hive
 import pandas as pd
 HOST = "10.100.168.143"  # backup "10.100.164.150"
 PORT = 10000
-USERNAME = "liwenyi"
+USERNAME = "liuxuanheng"
 database='ai'
 conn = hive.Connection(host=HOST, port=PORT, username=USERNAME, database=database)
 
+# 查询 pandas处理
 def fetch_order():
     query = "SELECT * from ai.dws_etp_test_da"        
     df = pd.read_sql(query, conn)
     return df
 fetch_order()
 
+# 增删 加载文件入外部表 
+# dws_etp_test_da：city_id,score,event_day(分区)
+# test文件格式无列名和行标 
+cursor = conn.cursor()
+# 1.此处未指定分区，into 和 overwrite into 均表示直接插入，不会覆盖任何分区，hdfs文件不移动到warehouse表名及对应日期分区目录下
+cursor.execute('load data inpath "hdfs:///data/ai/models/liuxuanheng/station/test.csv" [overwrite] into table ai.dws_etp_test_da')  
+
+# 2.此处指定分区，overwrite 会将指定分区数据覆盖，into为追加数据，文件会移动到warehouse表名及对应日期分区目录下，文件数据load时会按照表创建的字段分隔方式，如','分割,依次将数据插入表中，test文件中多余的列字段会被丢弃（本例中的event_day）
+cursor.execute('load data inpath "hdfs:///data/ai/models/liuxuanheng/station/test.csv"  into table ai.dws_etp_test_da partition(event_day="20220801")' )  
+cursor.close()
 ```
+
+###  查询hdfs指定目录下是否有csv文件
+
+```python
+# 1.服务器由多个节点组成hadoop集群，在节点安装jupyter可以通过终端使用hadoops shell命令交互，操作hdfs上文件
+# 2.在jupyter上py脚本中，我们想要读取hdfs上数据需要pyhdfs等工具连接，然后操作hdfs目录文件
+# 3.可以编写bash shell脚本，在jupyter终端执行
+# 4.可以通过os库执行 shell 命令，但是仅可以根据返回值查看是否成功，并不可以获取值等交互行为
+import os
+sign = os.system('hadoop fs -ls hdfs:///data/ai/models/liuxuanheng/station/test.csv') #执行cmd命令
+flag = True if sign==0 else False # 上述返回值一般系统为0表示正确执行，其余返回值为异常
+# if flag==True 则load数据入hive写今天分区 else 复制前一天数据写今天分区
+```
+
 
 ### 全局配置文件读取
     # transfer.conf 配置文件
