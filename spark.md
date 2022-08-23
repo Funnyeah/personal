@@ -74,6 +74,13 @@
     调大端口重试次数
     set('spark.port.maxRetries' , 50)
 
+    自动广播join，默认10m以下的表缓存到内存中
+    原理：将小表聚合到driver端，再广播到各个大表分区中，那么再次进行join的时候，就相当于大表的各自分区的数据与小表进行本地join，从而规避了shuffle，此时driver内存不能太小
+    set("spark.sql.autoBroadcastJoinThreshold","10m")
+
+    禁用自动广播join
+    set("spark.sql.autoBroadcastJoinThreshold","-1")
+
 
 ### Spark MLlib Pipelines
 MLlib中的Pipeline主要受scikit-learn项目的启发，旨在更容易地将多个算法组合成单个管道或工作流，向用户提供基于DataFrame的更高层次的API库，以更方便地构建复杂的机器学习工作流式应用。一个Pipeline可以集成多个任务，如特征变换、模型训练、参数设置等。下面介绍几个重要的概念。

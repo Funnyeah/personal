@@ -15,4 +15,5 @@
   - [最优运输](optimal_transport.md)
   - [认知提升](book_library.md)
   - [模型](tree_model.md)
+  - [项目](project.md)
   
