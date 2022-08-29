@@ -60,3 +60,25 @@ rtree 索引：https://blog.csdn.net/woaitingting1985/article/details/52251101
 Sedona：https://sedona.apache.org/api/sql/Overview/
 
 Apache Sedona（孵化）是一个用于处理大规模空间数据的集群计算系统。Sedona通过一组现成的分布式空间数据集和空间SQL扩展了Apache Spark和Apache Flink，这些空间数据集和SQL可以跨机器高效地加载、处理和分析大规模空间数据。
+
+### STAR原则 
+按照下述4个维度，对任务或者场景状态去思考及总结
+
+    Situation 情景-面临的背景
+    Target 目标-要达成什么目标
+    Action 行动-你做了什么
+    Result 结果-取得了什么效果
+
+应用：对于场景和业务流程进行梳理,有助于需求调研收集、完善用户故事的描述,规划和明确产品的关键功能
+### SMART分析法
+按照5个维度，对去任务或者项目进考核目标和考核标准的思考。
+
+    S：具体项（Specific）
+    M：可度量（Measurable）
+    A：可实现（Attainable）
+    R：关联情况（Relevant）
+    T：时限（Time-based）
+
+应用：明确任务的边界范围,确定产品功能的需求实现效果,参考制定工作任务项规划。
+
+
