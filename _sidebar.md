@@ -1,18 +1,22 @@
 
-- 专业知识
+- 入门
+  - [入门引导](howto/begin.md)
+  
 
-  - [入门引导](begin.md)
-  - [数学基础](math.md)
-  - [论文和基础](paper.md)
+- 知识
+  - [数学基础](knowledge/math.md)
+  - [论文相关](knowledge/paper.md)
+  - [书房](knowledge/book_library.md)
+  - [模型](knowledge/tree_model.md)
   
 - 工具
-  - [常见问题](common.md)
-  - [Hive](hive.md)
-  - [Spark](spark.md)
-  - [Pandas](pandas.md)
-  - [Python](python.md)
-  - [Tensorflow](tf.md)
-  - [书房](book_library.md)
-  - [模型](tree_model.md)
-  - [项目](project.md)
-  
+  - [常见问题](tools/common.md)
+  - [Hive](tools/hive.md)
+  - [Spark](tools/spark.md)
+  - [Pandas](tools/pandas.md)
+  - [Python](tools/python.md)
+  - [Tensorflow](tools/tf.md)
+
+
+- 项目
+  - [ETP](project/ETP.md)
