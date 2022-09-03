@@ -73,6 +73,9 @@ Qcut 保证每个分组的数量是一致的，传入一个正整数，边界根
 
     d1['qqcut']=pd.qcut(d1.a,5)
 
+    # 如果分界点值不唯一则报错：Bin edges must be unique，添加等值元素rank不同即可解决
+    d1['qqcut']=pd.qcut(d1.a.rank(method='first'),5)
+
 e.g.有列A, B，A的值在1-100（含），对A列每10步长，求对应的B的和
 
     df = pd.DataFrame({'A': [1,2,11,11,33,34,35,40,79,99], 

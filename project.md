@@ -296,7 +296,13 @@ from pandas.io.json import json_normalize
 import os
 import json
 
-def execute_ot(block, station, cost,target_field):
+def execute_ot(block, station, cost, target_field):
+    """
+    block：城市全量区块，每个区块数据包含当时车辆及其相关信息
+    station：城市全量车站，每个车站数据包含离线计算的车站信息
+    cost：城市部分区块到所有车站距离成本，由于区块稀疏，计算时只传入时刻全部车辆所在区块
+    target_field：控制城市是否走探索逻辑
+    """
     #=== config ===
     cf = get_transfer_config()
     explore_max_increase_rate = float(cf.get("transfer", "explore_max_increase_rate"))
@@ -306,16 +312,16 @@ def execute_ot(block, station, cost,target_field):
 
     #=== block ===
     block_df = pd.DataFrame(block)
-    block_df['bikes'] = block_df.bike_list.map(lambda x:len(x))
-    block_df.rename(columns={'block_cost_opportunity':'opportunity_cost'},inplace=True)
-    cost_block_list = [b['block_id'] for b in cost]
-    block_df = block_df[block_df.block_id.isin(cost_block_list)]
-    block_df = block_df.sort_values(['block_id']).reset_index(drop=True)
+    block_df['bikes'] = block_df.bike_list.map(lambda x:len(x)) # 区块当前车辆数
+    block_df.rename(columns={'block_cost_opportunity':'opportunity_cost'},inplace=True) # 区块机会成本
+    cost_block_list = [b['block_id'] for b in cost] # 只留下距离成本中的区块
+    block_df = block_df[block_df.block_id.isin(cost_block_list)] # 过滤稀疏无用区块数据
+    block_df = block_df.sort_values(['block_id']).reset_index(drop=True) # 区块id排序，便于最后记录对应传输
 
     #=== station ===
     station_df = pd.DataFrame(station)
-    station_df["info"] = station_df["info"].apply(lambda x: revise_explore(x, explore_max_increase_rate,explore_max_value))
-    station_df['station_profit'] = station_df['info'].apply(lambda x:0 if (x[target_field]-x['context_bike_cnt']-x['predict_in_bike_cnt'])<=0 else x['profit_order'])
+    station_df["info"] = station_df["info"].apply(lambda x: revise_explore(x, explore_max_increase_rate,explore_max_value)) # 探索目标量逻辑
+    station_df['station_profit'] = station_df['info'].apply(lambda x:0 if (x[target_field]-x['context_bike_cnt']-x['predict_in_bike_cnt'])<=0 else x['profit_order']) # 目标量-当前存量-时段预估流入<=0则车站无需挪入，收益置为0，否则为计算收益
 
     """
     之前车站收益是用效率计算的，后续已用更合适的方式得出
@@ -324,51 +330,50 @@ def execute_ot(block, station, cost,target_field):
     # station_df['eff_coef'] = station_df.apply(lambda x:3 if x['efficiency']>6 else np.log(x['efficiency']+1)+1,axis=1)
     # station_df['station_profit'] = station_df.apply(lambda x:x['station_profit']*x['eff_coef'],axis=1)
 
-    station_df['target_bike_cnt_revise'] = station_df['info'].map( lambda x: get_target(x,target_field))
-    ""
+    station_df['target_bike_cnt_revise'] = station_df['info'].map( lambda x: get_target(x,target_field)) # 根据情况改变目标量
+    """
     车站目标不减去当前周围存在的车辆数，是因为保留ot时候自己转移自己，不保留的话会都挪出去的
-    "" 
-    station_df = station_df.sort_values(['station_id']).reset_index(drop=True)
-    filter_1_station_list = list(station_df[station_df.target_bike_cnt_revise==1]['station_id'])
-    station_df['target_bike_cnt_revise'] = station_df.target_bike_cnt_revise.map(lambda x:0 if x==1 else x)
+    """
+    station_df = station_df.sort_values(['station_id']).reset_index(drop=True) # 车站id排序，便于最后记录对应传输
+    filter_1_station_list = list(station_df[station_df.target_bike_cnt_revise==1]['station_id']) # 记录车站目标量为1的车站id
+    station_df['target_bike_cnt_revise'] = station_df.target_bike_cnt_revise.map(lambda x:0 if x==1 else x) # 将目标量为1的车站目标量置0，考虑到1单没必要挪，也没必要参与传输计算
 
     #=== cost ===
-    cost_df = json_normalize(cost,['station_list'],['block_id'])
-    cost_df = cost_df.sort_values(['block_id','station_id']).reset_index(drop=True)
-    cost_df['info.distance'] = cost_df['info.distance'].astype('float')
-    cost_df['dis_cost'] = cost_df.apply(lambda x:get_dis_cost(x['info.distance']),axis=1)
+    cost_df = json_normalize(cost,['station_list'],['block_id']) # 行转多列
+    cost_df = cost_df.sort_values(['block_id','station_id']).reset_index(drop=True) # 排序
+    cost_df['info.distance'] = cost_df['info.distance'].astype('float') # 区块中心到车站中心直线距离
+    cost_df['dis_cost'] = cost_df.apply(lambda x:get_dis_cost(x['info.distance']),axis=1) # 距离成本预估
 
     #=== fuse ===
-    m1 = cost_df.merge(station_df,on=['station_id'],how='left')
-    m2 = m1.merge(block_df,on=['block_id'],how='left')
-    filter_1_block_list=list(m2[(m2['info.distance']<1) & (m2['station_id'].isin(filter_1_station_list))]['block_id'])
-    m2['total_profit'] = m2.apply(lambda x:999 if x['info.distance']< 25 else (x['station_profit']-x['opportunity_cost'])*2.5-x['dis_cost'] ,axis=1)
-    m2['end_cost'] = -m2.total_profit
-    cost_array = np.reshape(np.array(list(m2['end_cost'])),(-1,len(station_df))) # b --> s
-    block_df['bikes'] = block_df.apply(lambda x:x['bikes']-1 if x['block_id'] in filter_1_block_list and x['bikes']>0 else x['bikes'],axis=1)
+    m1 = cost_df.merge(station_df,on=['station_id'],how='left') # 关联车站目标量等信息
+    m2 = m1.merge(block_df,on=['block_id'],how='left') #关联区块车辆数等信息
+    filter_1_block_list=list(m2[(m2['info.distance']<1) & (m2['station_id'].isin(filter_1_station_list))]['block_id']) # 记录区块到车站距离很近数据（区块内有车站）、记录刚才记录的车站目标量为1的区块id数据
+    m2['total_profit'] = m2.apply(lambda x:999 if x['info.distance']< 25 else (x['station_profit']-x['opportunity_cost'])*2.5-x['dis_cost'] ,axis=1) # 区块到车站距离小于25米收益置999，考虑后续不执行近距离挪车便于过滤；大于25米的计算（车站收益/单-区块机会成本/单）* 2.5 - 距离成本 得到 区块到车站的预估收益/元
+    m2['end_cost'] = -m2.total_profit # 最优运输优化目标为最小化代价，因此收益取负，进入优化则为最大化收益
+    cost_array = np.reshape(np.array(list(m2['end_cost'])),(-1,len(station_df))) # b --> s 转换为车站到区块的代价矩阵
+    block_df['bikes'] = block_df.apply(lambda x:x['bikes']-1 if x['block_id'] in filter_1_block_list and x['bikes']>0 else x['bikes'],axis=1) # 将记录的需过滤的区块车辆数减1，也就是车站减了一个目标，车站对应的区块车辆数也得减1
     #m2.to_json("original.json")
 
     #=== calcute ===
-    b = list(block_df['bikes'])
-    s = list(station_df['target_bike_cnt_revise'])
-    print("supply accept:",sum(b),sum(s))
-    m = min(sum(s),sum(b))
-    M = cost_array
-    martix = ot.partial.partial_wasserstein(b,s,M=cost_array,m=m)
+    b = list(block_df['bikes'])  # 排序的区块车辆数量
+    s = list(station_df['target_bike_cnt_revise']) # 排序的车站目标数量
+    m = min(sum(s),sum(b)) # 部分最优需传二者最小值
+    M = cost_array # 代价矩阵
+    martix = ot.partial.partial_wasserstein(b,s,M=cost_array,m=m) # 求解
 
-    va2 = pd.DataFrame(martix,index=list(block_df['block_id']),columns =list(station_df['station_id']))
+    va2 = pd.DataFrame(martix,index=list(block_df['block_id']),columns =list(station_df['station_id'])) # 赋值对应的区块和车站id索引
     res2 = []
-    for idx,val in va2.iterrows():
+    for idx,val in va2.iterrows(): # 遍历记录区块id、车站id、传输数量
         for col in va2.columns:
             if val[col] > 0:
                 res2.append((idx,col,val[col]))
     if not res2:
         return []
-    trans_df = pd.DataFrame(res2,columns=['block_id','station_id','move_cnt'])
+    trans_df = pd.DataFrame(res2,columns=['block_id','station_id','move_cnt']) # 结果
     trans_df['move_cnt'] = trans_df['move_cnt'].astype('int')
-    trans_df = trans_df.merge(m2[['block_id','station_id','end_cost']],on = ['block_id','station_id'] ,how = 'left')
+    trans_df = trans_df.merge(m2[['block_id','station_id','end_cost']],on = ['block_id','station_id'] ,how = 'left') # 关联下传输代价，也就是收益
     trans_df.rename({'end_cost':'score'},axis=1,inplace=True)
-    trans_df['info'] = trans_df.apply(lambda x:{'station_id':x['station_id'],'info':{'move_cnt':x['move_cnt'],'score':(-x['score'])*x['move_cnt']}},axis=1)
+    trans_df['info'] = trans_df.apply(lambda x:{'station_id':x['station_id'],'info':{'move_cnt':x['move_cnt'],'score':(-x['score'])*x['move_cnt']}},axis=1) # 约定好的格式
 
     return trans_df
 
