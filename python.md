@@ -8,7 +8,6 @@
 
 [scikit-learn](https://scikit-learn.org/stable/)
 
-
 ### 日期获取
 
     #当前日期时间获取
@@ -268,93 +267,6 @@ flag = True if sign==0 else False # 上述返回值一般系统为0表示正确�
     bike_one_worker = float(cf.get("trans", "bike_one_worker"))
 
 
-### 坐标系转换
-
-```python
-下述两个方法相同
-# 1
-from coord_convert.transform import wgs2gcj, wgs2bd, gcj2wgs, gcj2bd, bd2wgs, bd2gcj
-
-# 2
-x_pi = 3.14159265358979324 * 3000.0 / 180.0
-pi = 3.1415926535897932384626  # π
-a = 6378245.0  # 长半轴
-ee = 0.00669342162296594323  # 偏心率平方
-
-def bd09_to_wgs84(bd_lon, bd_lat):
-    lon, lat = bd09_to_gcj02(bd_lon, bd_lat)
-    return gcj02_to_wgs84(lon, lat)
-
-def bd09_to_gcj02(bd_lon, bd_lat):
-    """
-    百度坐标系(BD-09)转火星坐标系(GCJ-02)
-    百度——>谷歌、高德
-    :param bd_lat:百度坐标纬度
-    :param bd_lon:百度坐标经度
-    :return:转换后的坐标列表形式
-    """
-    x = bd_lon - 0.0065
-    y = bd_lat - 0.006
-    z = math.sqrt(x * x + y * y) - 0.00002 * math.sin(y * x_pi)
-    theta = math.atan2(y, x) - 0.000003 * math.cos(x * x_pi)
-    gg_lng = z * math.cos(theta)
-    gg_lat = z * math.sin(theta)
-    return [gg_lng, gg_lat]
-
-def gcj02_to_wgs84(lng, lat):
-    """
-    GCJ02(火星坐标系)转GPS84
-    :param lng:火星坐标系的经度
-    :param lat:火星坐标系纬度
-    :return:
-    """
-    if out_of_china(lng, lat):
-        return [lng, lat]
-    dlat = _transformlat(lng - 105.0, lat - 35.0)
-    dlng = _transformlng(lng - 105.0, lat - 35.0)
-    radlat = lat / 180.0 * pi
-    magic = math.sin(radlat)
-    magic = 1 - ee * magic * magic
-    sqrtmagic = math.sqrt(magic)
-    dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * pi)
-    dlng = (dlng * 180.0) / (a / sqrtmagic * math.cos(radlat) * pi)
-    mglat = lat + dlat
-    mglng = lng + dlng
-    return [lng * 2 - mglng, lat * 2 - mglat]
-
-def _transformlat(lng, lat):
-    ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + \
-          0.1 * lng * lat + 0.2 * math.sqrt(math.fabs(lng))
-    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *
-            math.sin(2.0 * lng * pi)) * 2.0 / 3.0
-    ret += (20.0 * math.sin(lat * pi) + 40.0 *
-            math.sin(lat / 3.0 * pi)) * 2.0 / 3.0
-    ret += (160.0 * math.sin(lat / 12.0 * pi) + 320 *
-            math.sin(lat * pi / 30.0)) * 2.0 / 3.0
-    return ret
-
-def _transformlng(lng, lat):
-    ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + \
-          0.1 * lng * lat + 0.1 * math.sqrt(math.fabs(lng))
-    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *
-            math.sin(2.0 * lng * pi)) * 2.0 / 3.0
-    ret += (20.0 * math.sin(lng * pi) + 40.0 *
-            math.sin(lng / 3.0 * pi)) * 2.0 / 3.0
-    ret += (150.0 * math.sin(lng / 12.0 * pi) + 300.0 *
-            math.sin(lng / 30.0 * pi)) * 2.0 / 3.0
-    return ret
-
-def out_of_china(lng, lat):
-    """
-    判断是否在国内，不在国内不做偏移
-    :param lng:
-    :param lat:
-    :return:
-    """
-    return not (lng > 73.66 and lng < 135.05 and lat > 3.86 and lat < 53.55)
-
-```
-
 ### KDtree
 ```python
 from scipy import spatial
@@ -591,3 +503,148 @@ if __name__ == "__main__":
     eloscore = EloScore(0.5,1800,1500)
     print(eloscore.main())
 ```
+
+
+### 空间地图数据相关
+
+&emsp;&emsp; GIS（Geographic Information System，地理信息系统）是一门综合性学科，结合地理学与地图学以及遥感和计算机科学，已经广泛的应用在不同的领域，也有称GIS为"地理信息服务"（Geographic Information service）。GIS是一种基于计算机的工具，它可以对空间信息进行分析和处理（简而言之，是对地球上存在的现象和发生的事件进行成图和分析）。
+
+&emsp;&emsp; LBS（Location Based Services，基于位置的服务）的核心是位置与地理信息。一个单纯的经纬度坐标只有置于特定的地理信息中，代表为某个地点、标志、方位后，才会被用户认识和理解。用户在通过相关技术获取到位置信息之后，还需要了解所处的地理环境，查询和分析环境信息，从而为用户活动提供信息支持与服务。
+
+#### 坐标系
+    1、WGS-84坐标系：地心坐标系，GPS原始坐标体系
+    在中国，任何一个地图产品都不允许使用GPS坐标。
+
+    2、GCJ-02 坐标系：国测局坐标，火星坐标系
+    1）国测局02年发布的坐标体系，它是一种对经纬度数据的加密算法，即加入随机的偏差。
+    2）互联网地图在国内必须至少使用GCJ-02进行首次加密，不允许直接使用WGS-84坐标下的地理数据，同时任何坐标系均不可转换为WGS-84坐标。
+    3）是国内最广泛使用的坐标体系，高德、腾讯、Google中国地图都使用它。
+
+    3、BD-09坐标系
+    百度中国地图所采用的坐标系，由GCJ-02进行进一步的偏移算法得到。
+
+    4、CGCS2000坐标系：国家大地坐标系
+    该坐标系是通过中国GPS 连续运行基准站、 空间大地控制网以及天文大地网与空间地网联合平差建立的地心大地坐标系统。
+
+
+#### 坐标系转换
+
+```python
+下述两个方法相同
+# 1
+from coord_convert.transform import wgs2gcj, wgs2bd, gcj2wgs, gcj2bd, bd2wgs, bd2gcj
+
+# 2
+x_pi = 3.14159265358979324 * 3000.0 / 180.0
+pi = 3.1415926535897932384626  # π
+a = 6378245.0  # 长半轴
+ee = 0.00669342162296594323  # 偏心率平方
+
+def bd09_to_wgs84(bd_lon, bd_lat):
+    lon, lat = bd09_to_gcj02(bd_lon, bd_lat)
+    return gcj02_to_wgs84(lon, lat)
+
+def bd09_to_gcj02(bd_lon, bd_lat):
+    """
+    百度坐标系(BD-09)转火星坐标系(GCJ-02)
+    百度——>谷歌、高德
+    :param bd_lat:百度坐标纬度
+    :param bd_lon:百度坐标经度
+    :return:转换后的坐标列表形式
+    """
+    x = bd_lon - 0.0065
+    y = bd_lat - 0.006
+    z = math.sqrt(x * x + y * y) - 0.00002 * math.sin(y * x_pi)
+    theta = math.atan2(y, x) - 0.000003 * math.cos(x * x_pi)
+    gg_lng = z * math.cos(theta)
+    gg_lat = z * math.sin(theta)
+    return [gg_lng, gg_lat]
+
+def gcj02_to_wgs84(lng, lat):
+    """
+    GCJ02(火星坐标系)转GPS84
+    :param lng:火星坐标系的经度
+    :param lat:火星坐标系纬度
+    :return:
+    """
+    if out_of_china(lng, lat):
+        return [lng, lat]
+    dlat = _transformlat(lng - 105.0, lat - 35.0)
+    dlng = _transformlng(lng - 105.0, lat - 35.0)
+    radlat = lat / 180.0 * pi
+    magic = math.sin(radlat)
+    magic = 1 - ee * magic * magic
+    sqrtmagic = math.sqrt(magic)
+    dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * pi)
+    dlng = (dlng * 180.0) / (a / sqrtmagic * math.cos(radlat) * pi)
+    mglat = lat + dlat
+    mglng = lng + dlng
+    return [lng * 2 - mglng, lat * 2 - mglat]
+
+def _transformlat(lng, lat):
+    ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + \
+          0.1 * lng * lat + 0.2 * math.sqrt(math.fabs(lng))
+    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *
+            math.sin(2.0 * lng * pi)) * 2.0 / 3.0
+    ret += (20.0 * math.sin(lat * pi) + 40.0 *
+            math.sin(lat / 3.0 * pi)) * 2.0 / 3.0
+    ret += (160.0 * math.sin(lat / 12.0 * pi) + 320 *
+            math.sin(lat * pi / 30.0)) * 2.0 / 3.0
+    return ret
+
+def _transformlng(lng, lat):
+    ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + \
+          0.1 * lng * lat + 0.1 * math.sqrt(math.fabs(lng))
+    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *
+            math.sin(2.0 * lng * pi)) * 2.0 / 3.0
+    ret += (20.0 * math.sin(lng * pi) + 40.0 *
+            math.sin(lng / 3.0 * pi)) * 2.0 / 3.0
+    ret += (150.0 * math.sin(lng / 12.0 * pi) + 300.0 *
+            math.sin(lng / 30.0 * pi)) * 2.0 / 3.0
+    return ret
+
+def out_of_china(lng, lat):
+    """
+    判断是否在国内，不在国内不做偏移
+    :param lng:
+    :param lat:
+    :return:
+    """
+    return not (lng > 73.66 and lng < 135.05 and lat > 3.86 and lat < 53.55)
+
+```
+
+#### 底层数据存储
+
+1.地理空间数据结构复杂，它们的存储关系到 GIS 数据交换、显示、查询、分析的能力。
+
+2.GIS 的数据模型有矢量、栅格；矢量模型数据用点、线、面来描述地理实体，两点成线，三线可成面，线和面在计算机存储时其实记录的还是点的坐标。
+
+3.矢量模型常用的数据格式有Shapefile、KML、dwg、dxf 等；栅格数据用二维矩阵的位图来表示空间地物，常见的格式有TIFF、JPEG、BMP、PCX、GIF等。
+
+4.矢量和栅格各有优缺点：比如矢量图与分辨率无关，就像你在手机地图中无论把地图放大到多大，都不影响显示的质量和效果，而栅格数据放大几倍后，就会明显地出现“马赛克”的现象；但矢量数据结构复杂，现势性差，而栅格数据可以通过卫星拍摄快速获取，等等。GIS 应该根据使用场景，来确定使用矢量模型还是栅格模型。
+
+5.当数据达到一定规模后，文件存储方式已经不能满足需求，按照传统的解决方式，自然想到的是创建数据库啊！地理数据包含非结构化的空间数据、结构化的属性数据、空间关系数据，传统的关系型数据库无法提供存储、管理、索引、查询等常规的数据库功能，所以空间数据库应用而生，现在常见的空间数据库有GeoDatabase，PostgreSQL，Oracle Spatial等。
+
+#### 数据制图
+
+&emsp;&emsp; 因为地球是个三维近椭球体，而地图是个二维平面，如何将球面上地物的相对位置，准确的在二维平面上表示，就需要针对实际应用场景采用合适的坐标系统（Beijing54、Xian80、WGS84等）和地图投影（高斯克吕格、墨卡托等）
+
+#### 空间索引
+
+    1.KD树空间索引（二叉树索引）、KDB树索引
+    2.R树、R+树空间索引
+    3.G树索引
+    4.四叉树索引及其分类（点四叉树索引、MX四叉树索引、PR四叉树索引、CIF四叉树索引、基于固定网格划分的四叉树索引）
+    5.CELL树索引
+    6.BSP树空间索引
+
+#### 常用工具
+- 1.[Shapely-doc](https://shapely.readthedocs.io/en/latest/manual.html#introduction) [Shapely-示例](https://www.osgeo.cn/pygis/shapely-geometry.html?highlight=polygon)
+
+- 2.[folium-doc](https://python-visualization.github.io/folium/quickstart.html#Markers) [folium-示例](https://blog.csdn.net/weixin_38169413/article/details/104806257?spm=1001.2101.3001.6650.8&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&utm_relevant_index=9) [folium-示例](https://zhangphil.blog.csdn.net/article/details/110414544?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&utm_relevant_index=3)
+
+- 3.[geo_json简明](https://zhuanlan.zhihu.com/p/539689986)
+- 4.[geopandas-doc](https://geopandas.org/en/stable/gallery/polygon_plotting_with_folium.html)
+- 5.[h3-doc](https://h3geo.org/docs/3.x/api/indexing)
+- 6.[Sedona](https://sedona.apache.org/api/sql/Overview/)

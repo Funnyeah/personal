@@ -12,8 +12,7 @@
   - [Pandas](pandas.md)
   - [Python](python.md)
   - [Tensorflow](tf.md)
-  - [最优运输](optimal_transport.md)
-  - [认知提升](book_library.md)
+  - [书房](book_library.md)
   - [模型](tree_model.md)
   - [项目](project.md)
   

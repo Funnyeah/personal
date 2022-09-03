@@ -1,4 +1,4 @@
-## 推荐系统
+
    - 预备知识
         - [整体流程](/paper/pipeline1.md)
         - [物料召回](/paper/pipeline2.md)
@@ -12,3 +12,4 @@
         - [youtube-DNN](/paper/youtube-DNN.md)
         - [FM/FFM](/paper/FM.md)
         - [transformer](/paper/transformer.md)
+        - [AlexNet](/paper/AlexNet.md)
