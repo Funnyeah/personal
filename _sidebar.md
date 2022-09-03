@@ -1,6 +1,6 @@
 
 - 入门
-  - [入门引导](howto/begin.md)
+  - [开始](howto/begin.md)
   
 
 - 知识
