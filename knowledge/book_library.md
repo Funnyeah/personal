@@ -24,6 +24,7 @@
 ### 统计机器学习
 
 [李航code](https://github.com/fengdu78/lihang-code)
+[李航课后习题](https://datawhalechina.github.io/statistical-learning-method-solutions-manual/#/part01/chapter04/ch04)
 
 [主流机器学习code](https://github.com/zhulei227/ML_Notes)
 
