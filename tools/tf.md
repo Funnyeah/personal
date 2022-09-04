@@ -1,3 +1,5 @@
-### TF 
+### dive into deep learning
 
-手推梯度下降
+
+[doc](https://zh.d2l.ai/index.html)
+

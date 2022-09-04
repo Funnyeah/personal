@@ -10,6 +10,8 @@ docsify 是一个动态生成文档网站的工具。不同于 GitBook、Hexo �
 
 https://www.jianshu.com/p/83ddae5c2a9d
 
+https://www.cnblogs.com/Can-daydayup/p/15413267.html
+
 # 2. 环境配置
 
 docsify-cli 工具，可以方便创建及本地预览文档网站。
