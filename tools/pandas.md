@@ -1,3 +1,5 @@
+[doc](https://www.gairuo.com/p/pandas-tutorial)
+
 ### 基础设置
 
     pd.set_option('display.max_columns', None)  # 列
@@ -7,7 +9,14 @@
 ### 基础语法
     
     列改名
-    city_info_df.rename(columns={'id':'city_id'},inplace=True)           
+    city_info_df.rename(columns={'id':'city_id'},inplace=True)   
+
+    填充缺失值,以下填写不会马上生效，需要重新赋值给 df 或者 inplace=Ture
+    values = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+    df.fillna(value=values,inplace=Ture)  
+
+    如果上述填充还不行可以用替换
+    df = df.replace({'col': {np.nan: 100}})      
     
     指定连接方式和连接字段合并两表（默认left 保留左表全部行列+右表对应on的右表字段）
     df_id_name=pd.merge(station_df_227,city_info_df,how='left',on=['city_id’])

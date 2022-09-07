@@ -613,6 +613,19 @@ def out_of_china(lng, lat):
     return not (lng > 73.66 and lng < 135.05 and lat > 3.86 and lat < 53.55)
 
 ```
+#### 距离估算
+
+    b_lon =    109.67249220637174 
+    b_lat =    27.449656246000266 
+    s_lon =    109.69888390656 
+    s_lat =    27.4442168870677 
+    dis = 1000 * 6371.393 * np.arccos(
+        np.cos(np.radians(s_lat)) * np.cos(np.radians(b_lat)) * np.cos(np.radians(b_lon)-np.radians(s_lon))
+        + 
+        np.sin(np.radians(b_lat)) * np.sin(np.radians(s_lat))
+    ) #米
+
+
 
 #### 底层数据存储
 
@@ -642,7 +655,7 @@ def out_of_china(lng, lat):
 #### 常用工具
 - 1.[Shapely-doc](https://shapely.readthedocs.io/en/latest/manual.html#introduction) [Shapely-示例](https://www.osgeo.cn/pygis/shapely-geometry.html?highlight=polygon)
 
-- 2.[folium-doc](https://python-visualization.github.io/folium/quickstart.html#Markers) [folium-示例](https://blog.csdn.net/weixin_38169413/article/details/104806257?spm=1001.2101.3001.6650.8&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&utm_relevant_index=9) [folium-示例](https://zhangphil.blog.csdn.net/article/details/110414544?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&utm_relevant_index=3)
+- 2.[folium-doc](https://python-visualization.github.io/folium/quickstart.html#Markers) [folium-示例](https://blog.csdn.net/weixin_38169413/article/details/104806257?spm=1001.2101.3001.6650.8&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&utm_relevant_index=9) [folium-示例](https://zhangphil.blog.csdn.net/article/details/110414544?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&utm_relevant_index=3) [folium-进阶](https://zhuanlan.zhihu.com/p/502601498)
 
 - 3.[geo_json简明](https://zhuanlan.zhihu.com/p/539689986)
 - 4.[geopandas-doc](https://geopandas.org/en/stable/gallery/polygon_plotting_with_folium.html)
