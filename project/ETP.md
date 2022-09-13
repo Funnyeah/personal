@@ -308,7 +308,6 @@ def execute_ot(block, station, cost, target_field):
     explore_max_increase_rate = float(cf.get("transfer", "explore_max_increase_rate"))
     explore_max_value = int(cf.get("transfer", "explore_max_value"))
     print("explore_max_increase_rate:{} explore_max_value:{}".format(explore_max_increase_rate,explore_max_value))
-    #=== source ===
 
     #=== block ===
     block_df = pd.DataFrame(block)
