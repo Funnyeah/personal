@@ -16,6 +16,7 @@
   - [Pandas](tools/pandas.md)
   - [Python](tools/python.md)
   - [Tensorflow](tools/tf.md)
+  - [Other-tools](tools/other_tools.md)
 
 
 - 项目

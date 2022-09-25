@@ -113,6 +113,38 @@
     po.close()
     po.join()
 
+### 文件操作
+
+    """
+    f.read()、f.write  #读写整个文件 ,read(size)可读取size大小的文件
+    f.readline()  # 每次读一行
+    f.readlines()、f.writelines（） # readlines按行读取文件，并存入一个字符串列表; writelines将一个字符串列表的形式写入文件
+    mode为读取模式，默认为r，即只读模式
+    b表示二进制，r表示读，w表示写，a表示追加。无论什么模式，有+则意味着可读可写。写入一般会覆盖原文件，追加则在原文件尾部开始写。如果文件不存在，w, w+, a, a+, wb会创建新文件
+    """
+    with open(path='data/info.txt' ,mode='r') as f: 
+        lines = f.readlines() # 行文本列表 
+        for l in lines:
+            ls = l.strip()
+        f.close()
+
+### http get请求
+
+    import requests
+    import json
+    url = f'http://10.100.3.240:5000/dispatch/neighbor?requestData=%7B%22debug%22:1,%22city_id%22:635,%22labor_id%22:32746,%22labor_latitude%22:{labor_lat},%22labor_longitude%22:{labor_lon},%22move_num%22:0,%22move_type%22:5,%22trace_id%22:%22d488f67a-c41b-4afd-bc7a-9c5814b55598%22%7D'
+    cookies = {'Cookie':'xxxxx'}
+    r = requests.get(url, cookies = cookies)
+
+    # 网页内容 r.text 返回的是Unicode格式的数据  content 为二进制数据
+    print(r.text)
+    print(r.content)
+
+    # 内容返回json格式 
+    r.json() # 1
+    json_info = json.loads(r.text.strip()) # 2
+
+
 ### 项目导包路径问题
 
     import sys
@@ -614,7 +646,7 @@ def out_of_china(lng, lat):
 
 ```
 #### 距离估算
-
+    # 方法一
     b_lon =    109.67249220637174 
     b_lat =    27.449656246000266 
     s_lon =    109.69888390656 
@@ -624,6 +656,23 @@ def out_of_china(lng, lat):
         + 
         np.sin(np.radians(b_lat)) * np.sin(np.radians(s_lat))
     ) #米
+
+    # 方法二
+    EARTH_REDIUS = 6378.137
+
+    def rad(d):
+        return d * math.pi / 180.0
+
+    def getDistance(lat1, lng1, lat2, lng2):
+        radLat1 = rad(lat1)
+        radLat2 = rad(lat2)
+        a = radLat1 - radLat2
+        b = rad(lng1) - rad(lng2)
+        s = 2 * math.asin(math.sqrt(math.pow(math.sin(a / 2), 2) + math.cos(radLat1) * math.cos(radLat2) * math.pow(math.sin(b / 2), 2)))
+        s = s * EARTH_REDIUS
+        return s * 1000
+    dis = getDistance(b_lat,b_lon,s_lat,s_lon)
+
 
 
 
@@ -655,7 +704,7 @@ def out_of_china(lng, lat):
 #### 常用工具
 - 1.[Shapely-doc](https://shapely.readthedocs.io/en/latest/manual.html#introduction) [Shapely-示例](https://www.osgeo.cn/pygis/shapely-geometry.html?highlight=polygon)
 
-- 2.[folium-doc](https://python-visualization.github.io/folium/quickstart.html#Markers) [folium-示例](https://blog.csdn.net/weixin_38169413/article/details/104806257?spm=1001.2101.3001.6650.8&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&utm_relevant_index=9) [folium-示例](https://zhangphil.blog.csdn.net/article/details/110414544?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&utm_relevant_index=3) [folium-进阶](https://zhuanlan.zhihu.com/p/502601498)
+- 2.[folium-doc](https://python-visualization.github.io/folium/quickstart.html#Markers) [folium-示例](https://blog.csdn.net/weixin_38169413/article/details/104806257?spm=1001.2101.3001.6650.8&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EOPENSEARCH%7ERate-8-104806257-blog-110427178.topnsimilarv1&utm_relevant_index=9) [folium-示例](https://zhangphil.blog.csdn.net/article/details/110414544?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-2-110414544-blog-110427178.topnsimilarv1&utm_relevant_index=3) [folium-进阶](https://zhuanlan.zhihu.com/p/502601498) [folium-git](https://github.com/HuStanding/show_geo/blob/master/Folium%20Visualization%20Examples.ipynb)
 
 - 3.[geo_json简明](https://zhuanlan.zhihu.com/p/539689986)
 - 4.[geopandas-doc](https://geopandas.org/en/stable/gallery/polygon_plotting_with_folium.html)

@@ -333,6 +333,7 @@ df = df.groupBy('Col1').agg(fn.collect_list('Col2').alias('Col2')).rdd.map(row_d
     from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
 
 ### 快速demo
+    # 1
     import datetime
     import warnings
     from pyspark.sql import functions as F
@@ -349,3 +350,43 @@ df = df.groupBy('Col1').agg(fn.collect_list('Col2').alias('Col2')).rdd.map(row_d
 
     spark = open_spark_session(app_name='dws_ai_dispatch_city_span_da')
     spark.stop()
+
+    # 2
+    import os
+    import math
+    import time
+    import datetime
+    import warnings
+    import geog
+    import numpy as np
+    import pandas as pd
+    from h3 import h3
+    import shapely.geometry
+    from coord_convert.transform import wgs2gcj, wgs2bd, gcj2wgs, gcj2bd, bd2wgs, bd2gcj
+    from pyspark.conf import SparkConf
+    from pyspark.sql import SparkSession
+    import pyspark.sql.functions as F
+    from pyspark.sql.types import *
+    from pyspark.sql.functions import udf
+    from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
+    from pyspark.sql.types import LongType, IntegerType, StructType, Row, StructField, StringType, TimestampType, FloatType, \
+        ArrayType
+
+    warnings.filterwarnings("ignore")
+
+
+    def get_spark_config(master="local[3]", app_name="ai-train"):
+        os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
+        conf = (SparkConf().setMaster(master).setAppName(app_name))
+        return conf
+
+    def open_spark_session(master="local[3]",app_name="ai-train"):
+        conf = get_spark_config(master=master, app_name=app_name)
+        conf = conf.set("spark.driver.maxResultSize", "20g").set("spark.sql.execution.arrow.enabled", "true").set('spark.executor.memory', '10g').set('spark.driver.memory', '10g').set(
+            'spark.port.maxRetries', 50)
+        
+        #set（key,value） 设置属性 
+        spark = SparkSession.builder.config(conf=conf).getOrCreate()
+        
+        return spark
+    spark = open_spark_session(app_name='xxx')
