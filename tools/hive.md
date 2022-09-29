@@ -1,3 +1,7 @@
+
+[hive官网](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF)
+
+[presto官网](https://prestodb.io/docs/current/)
 ### 基础认识
 ?> Hive
 
@@ -120,8 +124,7 @@ show partitions ai.ads_ai_jw_block_scene_full_2
 
 
 ### 语法
-[hive](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF)
-[presto](https://prestodb.io/docs/current/)
+
 #### 基本运算符
 
 ```sql
@@ -512,6 +515,15 @@ select * from  (select * from tb)x -- hive 需加别名
 -- presto列表下表从1开始，hive列表下表标从0开始
 ```
 
+### mysql常用
+
+```sql
+-- 插入单条数据
+insert into  etp_calculate_config(service_name,section_name,config_value,create_time,update_time) values('lxh','lxh','{"test_citys":"644,670,675,510,133,260,170"}','2022-09-14 16:16:49','2022-09-14 16:16:49')
+
+-- 更新单条数据
+update etp_calculate_config set config_value = '{"test_citys":"644,670,675,510,133,260,170,481"}' where id=2
+```
 
 ### 工具sql
 
@@ -601,7 +613,7 @@ UNNEST(SEQUENCE(0,10, 2)) as t ( s )
 #### json格式解析
 ```sql
 -- hive
-get_json_object(json_col,'$.xxx') 
+get_json_object(json_col,'$.xxx')  -- json_col为hive列 xxx为json串中所需解析字段
 -- presto mysql
 json_extract(json_col, '$[*].xxx')
 ```
@@ -654,7 +666,7 @@ json_extract(json_col, '$[*].xxx')
         ai.dws_ai_jw_physics_move_car_da where event_day = '{event_day}' """
     spark.sql(sql_str)
 ```
-### 编辑器属性设置
+### Hue编辑器属性设置
 
 [概述](https://cloud.tencent.com/developer/article/1530056)
 
@@ -677,9 +689,62 @@ hive任务减少小文件，Map-only的任务结束时合并小文件：
 
 
 
-### grafana 可视化画图
+### grafana 
+
+1.创建看板 Create Dashboard
+
+2.为看板添加面板
+
+3.为面板添加查询
+
+4.选择查询的数据源：Queries中Query下拉列表选择相应数据源，如presto_proxy、mysql等，多种源选择Mixed
+
+5.添加查询的展现形式：Visualization内上方下拉列表选择，Graph为折线图等使用，Table为表格使用，Baidumap Panel为地图可视化使用
+
+6.添加面板的名字和描述：General中修改Title、Description
+
+7.每个面板可加入多个查询：Queries中右侧Add Query添加
+
+8.查询语句书写流程:
+
+8.1表格可视化：查询语句中下拉列表选择table(一般新建查询语句默认timeserie)，编辑写入查询语句即可表格展示
 ```sql
-— 画多边形区域
+  -- 切记Visualization内上方下拉列表选择Table,此处数据源为presto
+  -- ${__from} 和 ${__to} 为看板右上方传入的时间范围，可编辑查看数据时间范围，具体为毫秒级时间戳，例：1664439941000
+  -- $city_id 为面板配置中所配置的变量，变量名称为city_id,数据类型选择Text box,默认值根据所需情况填写
+  -- 需要注意的是自定义Text box变量传入的是数值型，如果字段类型为字符型，需加引号，如：event_day = '$event_day'
+  -- 变量也可查询获得，查询得到后就可通过看板上方对应变量下拉菜单选择，数据类型选择Query，数据源选择对应所需，刷新选择仪表盘加载时，query语句写入查询的变量即可
+  -- 表字段显示格式可在Visualization中编辑
+  select 
+        city_id,user_id,event_day,bonus
+  from
+        ai.dws_ai_user_capacity_algorithm_da_v2 
+  where
+        event_day between format_datetime(from_unixtime(${__from} / 1000), 'yyyyMMdd')
+        and format_datetime(from_unixtime(${__to} / 1000), 'yyyyMMdd')
+        and city_id = $city_id
+```
+
+8.2折线图可视化：查询语句中下拉列表选择timeserie(一般新建查询语句默认timeserie)
+
+```sql
+  -- 切记Visualization内上方下拉列表选择Graph,此处数据源为presto
+  -- 折线显示格式可在Visualization中编辑
+  select to_unixtime(parse_datetime(event_day, 'yyyyMMdd')) time_sec, avg_move_opportunity_cost, avg_move_pay_cost, avg_real_pay_cost 
+  from ai.etp_eff_metrics_da 
+  where event_day between format_datetime(from_unixtime(${__from} / 1000), 'yyyyMMdd') and format_datetime(from_unixtime(${__to} / 1000), 'yyyyMMdd') and city_id=$city_id 
+  order by time_sec
+```
+
+8.3地图可视化：查询语句此处下拉列表也是选择table
+
+```sql
+
+-- 切记Visualization内上方下拉列表选择Baidumap Panel,此处数据源为presto
+-- 查询语句中下拉列表选择table(一般新建查询语句默认timeserie)
+-- 经纬度可解析如下格式：'lon,lat', 'lon|lat', 'lon|lat;lon|lat'
+
+-- 画多边形区域
 SELECT
   now() as time,
   h3_edge as pos,
@@ -695,14 +760,23 @@ where
 city_id = $city_id and
   event_day='20220124'
 
-— 画制定半径的圆
+-- 画圆
 select  now() as time, 'circle' as type, 20 as  radius,  split(start_point,'|')[1] as longitude,   split(start_point,'|')[2] as latitude,   concat('{"option":{"fillColor":', cast( (ln(10000)+1)*10  as varchar), '}, "isStroke":false }') as config  from  ai.dws_ai_order_visual_yf where  city_id = $city_id and   event_day='20220124'
 
-— 画点
+-- 画点
 select  now() as time, 'Point' as type, '112.778399,32.134825' as pos 
 
-— content显示字段内容
+-- content显示字段内容
 select now() as time, 'circle' as type, 10 as radius, split(point,'|')[1] as longitude, split(point,'|')[2] as latitude, concat('{"content": "station_id:', cast(station_id as VARCHAR ), ',' , 'block_id:', cast(block_id as VARCHAR ),',','order_cnt:',cast(order_cnt as VARCHAR ), ' ", "option":{"fillColor":', '"#0000FF"', '}, "isStroke":false, "fillOpacity":0 }') as config from ai.dws_ai_jw_station_dispatch_detail_da where event_day = '$event_day' and city_id = $city_id and is_dispatch=1 and is_blind=1 and status=0
 
-- 画线 polyline
+-- 画线 polyline
+
+select 
+now() as time,  
+'polyline' as type,
+concat(a.source_block_center_points, ';', a.target_station_points) as pos,
+concat('{"content": "move_num:', cast(a.move_num as CHAR(100)),'","option":{"fillColor":',  '"#000000"', '}, "isStroke":false,  "fillOpacity":0 }') as config  
+from 
+transfer_plan_v2_202209 a 
+
 ```

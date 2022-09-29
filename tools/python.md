@@ -673,6 +673,10 @@ def out_of_china(lng, lat):
         return s * 1000
     dis = getDistance(b_lat,b_lon,s_lat,s_lon)
 
+    # 方法三
+    from geopy.distance import geodesic
+    geodesic((30.28708,120.12802999999997), (28.7427,115.86572000000001)).m # .km是千米
+
 
 
 
