@@ -1,4 +1,4 @@
-[doc](https://www.gairuo.com/p/pandas-tutorial)
+[中文文档](https://www.gairuo.com/p/pandas-tutorial)
 
 ### 基础设置
 
