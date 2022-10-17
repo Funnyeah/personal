@@ -359,6 +359,61 @@ $$
 $$\begin{aligned} \gamma=\arg \min _{\gamma}<\gamma, M &>_{F} \\ \text { s. } t . \gamma & \geq 0 \\ \gamma 1 & \leq a \\ \gamma^{T} 1 & \leq b \\ 1^{T} \gamma^{T} 1=m \leq \min \left\{\|a\|_{1},\|b\|_{1}\right\} \end{aligned}$$
 
 
+
+### A/B测试
+
+[ABTest流量分层机制](https://zhuanlan.zhihu.com/p/359668457)
+
+[ABTest流量分层机制2](https://blog.csdn.net/weixin_39925350/article/details/111373181)
+
+**假设检验：假设和检验**
+
+假设：
+H0:原假设：A=B 
+H1:备择（对立）假设:A!=B
+
+检验：从总体中抽样部分观测结果。会有两种情况：抽样误差（偶然）、本质差异（必然）
+
+比如我要计算全世界男生和女生平均身高是否相等？但是我们不可能实现统计全部男女身高，就需要抽样统计了，通过样本反应总体
+原假设：男高=女高;对立假设：男高!=女高
+
+样本与总体可能是不一样的。
+假如我的抽样情况是：男高!=女高，就会有上述两种情况：
+（1）实际上原假设是成立的，而我们由于抽样误差导致男女平均身高不一致
+（2）实际上原假设是错误的，男女平均身高就是不一样，必然发生的
+
+所以我们需要评估用样本估计总体这一操作的可信程度，引入p值
+p:H0原假设成立的情况下，拒绝H0的概率（个人理解为冤枉H0的概率、拒绝原假设犯第一类错误的最小概率），也就是因为抽样误差导致的
+
+$\alpha$：叫做显著性（差异）水平，使得犯第一类错误的概率控制在一定水平下，常取一个较小的数0.05，0.01
+当取0.05时，我们计算的p<=0.05时候，说明我们没冤枉H0原假设，说明没犯第一类错误，说明这不是抽样误差，说明男女平均身高就是不一样，说明原假设H0错误，对立假设H1成立(落在了显著性差异的那部分了)
+当p>0.05时候，说明我们冤枉了H0,说明男女身高实际是一样的，但犯了一类错误，这是抽样误差导致的，说明原假设H0成立(落在了置信区间的那部分了)
+
+**总结**
+P是抽样抽取的极端，而不是事件发生的极端。所以p越小，抽样越不极端，差异就越必然，则拒绝原假设H0
+P值就是抽样误差（偶然）发生的概率，如果小于显著性水平（0.05）的话则认定为小概率事件，不会发生，则是本质差异（必然），而样本的发生与原假设是相反的，所以原假设不成立
+
+P值是通过Z检验或者T检验或者其他表格找出来的概率，要得到这个概率就得先算z值或者t值，然后在对应的表里找
+
+    Φ（1.96）=P{（X-μ)/σ<1.96}=0.975
+    P(X<=x)=Φ[（X-μ)/σ]
+    P(X>x)=1-Φ[（X-μ)/σ]
+    P(|X|>x)=2*{1-Φ[（X-μ)/σ]}
+    P(|X-μ|/σ>1.96)=2*(1-0.975)=2*0.025=0.05
+    比如μ=0,σ=10时，P（|X|>19.6）=P（|X-0|/10>1.96）=2*[1-Φ（1.96）]=0.05
+
+
+
+[详细](https://zhuanlan.zhihu.com/p/346602966)
+
+[面试](https://zhuanlan.zhihu.com/p/487824153)
+
+[面试2](https://blog.csdn.net/garbageSystem/article/details/122603832?spm=1001.2101.3001.6650.4&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-122603832-blog-108114448.pc_relevant_3mothn_strategy_recovery&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-4-122603832-blog-108114448.pc_relevant_3mothn_strategy_recovery&utm_relevant_index=5)
+
+[hash分流](https://blog.csdn.net/weixin_38753213/article/details/108114448)
+
+[python-hash](https://blog.csdn.net/weixin_39588206/article/details/110909007?spm=1001.2101.3001.6650.3&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-3-110909007-blog-88015355.pc_relevant_aa&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-3-110909007-blog-88015355.pc_relevant_aa&utm_relevant_index=4)
+
 ### 临时写公式
 
 $y=\omega_{0}+\sum_{i=1}^{n} \omega_{i} x_{i}+\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \omega_{ij} x_{i} x_{j}$
@@ -375,3 +430,11 @@ $s.t.\quad  min\_cnt_i\\_j <= target\_bike\_cnt_i\\_j <= max\_cnt_i\\_j $
 
 $s.t.\quad  \sum target\_bike\_cnt_i\\_j < usable\_bike\_cnt$
 
+
+$$
+Z=\frac{\bar{X}-\mu}{\sqrt{\sigma^2 / n}}=\frac{\bar{X}-\mu}{\sigma / \sqrt{n}}
+$$
+
+$$
+Z=\frac{\left(\bar{x}_1-\bar{x}_2\right)-\left(u_1-u_2\right)}{\sqrt{\frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2}}} \sim N(0,1)
+$$

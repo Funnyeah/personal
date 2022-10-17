@@ -9,7 +9,7 @@
 ### 基础语法
     
     列改名
-    city_info_df.rename(columns={'id':'city_id'},inplace=True)   
+    city_info_df.rename(columns={'id':'city_id'},inplace=True,axis=1)   
 
     填充缺失值,以下填写不会马上生效，需要重新赋值给 df 或者 inplace=Ture
     values = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
