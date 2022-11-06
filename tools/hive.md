@@ -615,7 +615,7 @@ UNNEST(SEQUENCE(0,10, 2)) as t ( s )
 -- hive
 get_json_object(json_col,'$.xxx')  -- json_col为hive列 xxx为json串中所需解析字段
 -- presto mysql
-json_extract(json_col, '$[*].xxx')
+json_extract(json_col, '$.xxx')
 ```
 
 #### 威尔逊区间平滑
@@ -730,6 +730,7 @@ hive任务减少小文件，Map-only的任务结束时合并小文件：
 ```sql
   -- 切记Visualization内上方下拉列表选择Graph,此处数据源为presto
   -- 折线显示格式可在Visualization中编辑
+  -- 折线数据需要显示的cast成double或者int，不然图上不显示
   select to_unixtime(parse_datetime(event_day, 'yyyyMMdd')) time_sec, avg_move_opportunity_cost, avg_move_pay_cost, avg_real_pay_cost 
   from ai.etp_eff_metrics_da 
   where event_day between format_datetime(from_unixtime(${__from} / 1000), 'yyyyMMdd') and format_datetime(from_unixtime(${__to} / 1000), 'yyyyMMdd') and city_id=$city_id 

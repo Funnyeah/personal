@@ -43,11 +43,18 @@
     分组对不同列做不同聚合操作
     df.groupby(['in_num']).agg({'mae':'mean' ,'rmse':'mean', 'prediction':'mean', 'mse':'count'}).reset_index()
 
+    分组直接重命名，单一字段不同聚合方式 
+    df.groupby(['groupd']).agg(col1=('yeah','sum'),col2=('yeah','count'))
+
     皮尔逊相关系数
     df.corr()
 
     把浮点数取整，然后逗号分隔格式化输出
-    df[col] = df[col].apply(lambda x:'{:,}'.format(int(x)))     
+    df[col] = df[col].apply(lambda x:'{:,}'.format(int(x))) 
+
+    日期列表生成
+    event_day_list = [str(i)[:10].replace('-','') for i in pd.date_range(start='2022-09-11', end='2022-10-11', freq='D')]
+    
 
 
 ### 其余总结

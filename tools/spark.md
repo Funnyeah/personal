@@ -148,6 +148,9 @@ df = df.na.fill({ 'age' : 50, 'name' : 'x'})
 filter函数，此处将col_a列大于0的数据筛选出来
 df = df.filter(F.col('col_a')>0)
 
+过滤字段为空
+df = df.filter(F.col('order_start_h3').isNull())
+
 将旧字段改为新字段名(parms旧，parms新)
 df = df.withColumnRenamed('event_day','bike_event_day')
 
