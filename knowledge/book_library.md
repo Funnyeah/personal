@@ -36,12 +36,16 @@
 - https://github.com/uber/causalml
 - https://github.com/microsoft/EconML
 - https://github.com/grf-labs/grf
+- [小白](https://www.zhihu.com/people/foolcut/posts)
+- [滴滴](https://blog.csdn.net/DiDi_Tech/article/details/117137317?spm=1001.2014.3001.5501)
+- [因果发展](http://www.360doc.com/content/21/0831/23/60669552_993570605.shtml)
 
 ### 强化学习
 Deep Reinforcement Learning: [链接](https://deepreinforcementlearningbook.org/)
 
 ### 推搜
 [学习笔记](https://zhuanlan.zhihu.com/wangzhenotes)
+[简介](https://zhuanlan.zhihu.com/p/336643635)
 
 ### STAR原则 
 按照下述4个维度，对任务或者场景状态去思考及总结

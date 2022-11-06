@@ -24,6 +24,9 @@
     >> datetime.date(2022, 6, 7)
     d3 = d2.strftime('%Y%m%d')
     >> '20220607'
+    time.mktime(d1.timetuple())
+    >> 1667209327.0  # 秒级时间戳
+
 
 ### 坐标排序
 
@@ -646,6 +649,14 @@ def out_of_china(lng, lat):
 
 ```
 #### 距离估算
+
+φ1和φ2表示两点的纬度；
+λ1和λ2表示两点的经度。
+r为地球半径
+
+$\begin{aligned} dis &=2 r \arcsin \left(\sqrt{\operatorname{hav}\left(\varphi_2-\varphi_1\right)+\cos \left(\varphi_1\right) \cos \left(\varphi_2\right) \operatorname{hav}\left(\lambda_2-\lambda_1\right)}\right) \\ &=2 r \arcsin \left(\sqrt{\sin ^2\left(\frac{\varphi_2-\varphi_1}{2}\right)+\cos \left(\varphi_1\right) \cos \left(\varphi_2\right) \sin ^2\left(\frac{\lambda_2-\lambda_1}{2}\right)}\right) \end{aligned}$
+
+
     # 方法一
     b_lon =    109.67249220637174 
     b_lat =    27.449656246000266 
@@ -676,6 +687,28 @@ def out_of_china(lng, lat):
     # 方法三
     from geopy.distance import geodesic
     geodesic((30.28708,120.12802999999997), (28.7427,115.86572000000001)).m # .km是千米
+
+    # 方法四
+
+    def haversine(latlon1, latlon2):
+    """
+    计算两经纬度之间的距离
+    """
+    if (latlon1 - latlon2).all():
+        lat1, lon1 = latlon1
+        lat2, lon2 = latlon2
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        r = 6370996.81  # 地球半径m
+        distance = c * r
+    else:
+        distance = 0
+    return distance
+
+    
 
 
 
