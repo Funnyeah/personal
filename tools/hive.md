@@ -401,6 +401,23 @@ select regexp_extract_all('sfsf8sdd', '[0-9]+\.?[0-9]+') [1]   -- 报错匹配�
 
 select regexp_extract_all('sfsf8sdd', '[0-9]*\.?[0-9]+') [1]   -- 8      * 表示重复0或多次
 
+-- 字符串转列表
+select cast('[1,2]' as array <int>) as x --直接cast会报错
+select                                    --这样解析就行了
+  REGEXP_EXTRACT('[1,2]', '\\[(.*)\\]'),
+  REGEXP_EXTRACT('[1,2]', '^\\[(.*)\\]$', 1),
+  split(REGEXP_EXTRACT('[1,2]', '^\\[(.*)\\]$', 1),',') 
+
+with releases as (      --再多一个练手
+  select
+    '["us","ca","fr"]' as country
+)
+select
+  split(regexp_extract(country, '^\\["(.*)\\"]$', 1), '","'),
+  regexp_extract(country, '^\\["(.*)\\"]$', 1)
+from
+  releases
+
 ```
 
 #### 复杂类型
@@ -450,6 +467,7 @@ select * from parms
 -- map array explode 的联合使用示例
 
 2.array
+"hive"
 select array(1,2,3),array(1,2,3)[0],array(1.2,'x')
 -- 返回[1,2,3], 1, ['1.2','x']  
 
@@ -458,6 +476,11 @@ union
 select array(1,2)
 -- 返回error union时字段类型需一致，前者array<string>,后者array<int>，把后者改一个string参数就可自动类型转换
 
+"presto"
+SELECT ARRAY [3, 2, 5, 1, 2] -- 有点声明变量类型呢味儿了
+SELECT transform(ARRAY [5, NULL, 6], x -> COALESCE(x, 0) + 1)  -- [6, 1, 7]
+SELECT transform(ARRAY ['5', '2', '3'], x -> cast(x as int) + 1) -- 当然也可以变类型
+[数组操作](https://blog.csdn.net/u010711495/article/details/119772425)
 
 3.struct
 select
@@ -596,6 +619,16 @@ select cid, res_new from (
 )t
   LATERAL VIEW EXPLODE(t.res) tmptable as res_new
 --  hive中的']'等特殊字符转义需要三个反斜杠（根据情况可能需要多个，在pyspark中sql就需要4个了）
+
+-- presto
+select
+  ls2
+from
+  (
+    SELECT
+      array_sort(ARRAY [ 3, 2, 1 ]) ls
+  ) a
+  cross join unnest(a.ls) as ls(ls2)
 ```
 
 #### 生成序列数 
