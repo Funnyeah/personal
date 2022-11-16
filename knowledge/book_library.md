@@ -24,6 +24,7 @@
 ### 统计机器学习
 
 [李航code](https://github.com/fengdu78/lihang-code)
+
 [李航课后习题](https://datawhalechina.github.io/statistical-learning-method-solutions-manual/#/part01/chapter04/ch04)
 
 [主流机器学习code](https://github.com/zhulei227/ML_Notes)
@@ -36,9 +37,13 @@
 - https://github.com/uber/causalml
 - https://github.com/microsoft/EconML
 - https://github.com/grf-labs/grf
-- [小白](https://www.zhihu.com/people/foolcut/posts)
+- [综述及基础方法](https://zhuanlan.zhihu.com/p/258562953)
+- [双重差分](https://zhuanlan.zhihu.com/p/400085535)
+- [概念](https://zhuanlan.zhihu.com/p/449976773)
+- [框架](https://zhuanlan.zhihu.com/p/410053669)
 - [滴滴](https://blog.csdn.net/DiDi_Tech/article/details/117137317?spm=1001.2014.3001.5501)
 - [因果发展](http://www.360doc.com/content/21/0831/23/60669552_993570605.shtml)
+- [概念](https://www.cnblogs.com/caoyusang/p/13518354.html)
 
 ### 强化学习
 Deep Reinforcement Learning: [链接](https://deepreinforcementlearningbook.org/)
@@ -67,4 +72,31 @@ Deep Reinforcement Learning: [链接](https://deepreinforcementlearningbook.org/
 
 应用：明确任务的边界范围,确定产品功能的需求实现效果,参考制定工作任务项规划。
 
+[职业规划](https://zhuanlan.zhihu.com/p/192361020)
+[LaTeX数学公式大全](https://zhuanlan.zhihu.com/p/510451940)
 
+[sci-hub](https://www.scihub.net.cn/)
+[python官方](https://docs.python.org/zh-cn/3/index.html)
+[python语言规范](https://zh-google-styleguide.readthedocs.io/en/latest/google-python-styleguide/python_language_rules/)
+[python进阶](https://eastlakeside.gitbook.io/interpy-zh/)
+
+[sklearn-en](https://scikit-learn.org/stable/user_guide.html)
+
+[sklearn-cn](https://scikitlearn.com.cn/)
+
+[tf官方](https://tensorflow.google.cn/versions)
+
+[kaggle](https://www.kaggle.com/code/muratmert/bank-marketing-analysis-with-algorithms/notebook)
+[和鲸社区](https://www.heywhale.com/home/project)
+[paperswithcode](https://paperswithcode.com/methods)
+[OR-Tools](https://developers.google.cn/optimization/introduction/overview)
+[POT](https://pythonot.github.io/)
+[pandas-en](https://pandas.pydata.org/pandas-docs/stable/user_guide/index.html)
+[pandas-cn](https://www.gairuo.com/p/pandas-tutorial)
+
+[seaborn](https://seaborn.pydata.org/tutorial.html)
+[gensim](https://radimrehurek.com/gensim/apiref.html#api-reference)
+[xgboost](https://xgboost.readthedocs.io/en/latest/tutorials/input_format.html)
+[spark](https://spark.apache.org/docs/latest/sql-getting-started.html)
+[spark-sql](https://spark.apache.org/docs/latest/api/sql/)
+[sedona大规模数据处理系统](https://sedona.apache.org/)

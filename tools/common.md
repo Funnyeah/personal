@@ -116,7 +116,7 @@ Tips: 一定要cd到项目文件下再创建分支
     from pyspark.sql.functions import broadcast, udf, pandas_udf, PandasUDFType
     from pyspark.sql.types import ArrayType, StructField, StructType, StringType, IntegerType, DecimalType, FloatType
 
-### jupyter使用规范
+### 7.jupyter使用规范
 
 创建用户脚本
 ```python
@@ -153,4 +153,3 @@ kill -9 [PID]
 cd /data/apps/modules/jupyter_multi_users/shell
 ./start_jupyter_user.sh xxx 8888
 ```
-    

@@ -54,8 +54,26 @@
 
     日期列表生成
     event_day_list = [str(i)[:10].replace('-','') for i in pd.date_range(start='2022-09-11', end='2022-10-11', freq='D')]
+
+    实现分组序号row_number()
+    method='first' 相同的数值会按出现的先后给序号 1，2，3，4
+    method='min' 相同的数值会按最小的给序号 1，2，2，4
+    method='max' 相同的数值会按最大的给序号 1，2，2，4
+
+    df = pd.DataFrame({'A':[12,20,12,5,18,11,18],
+                   'C':['A','B','A','B','B','A','A']})
+    df['row_number'] = df['A'].groupby(df['C']).rank(ascending=True,method='min')
+    print(df)
+
+    实现lead（后一个）、lag（前一个）
+    df = pd.DataFrame({'A':[12,20,12,5,18,11,18],
+                   'C':['A','B','A','B','B','A','A']})
+    df['lag'] = df.sort_values('A').groupby('C')['A'].shift(1)
+    df['lead'] = df.sort_values('A').groupby('C')['A'].shift(-1)
+    print(df)
     
 
+  
 
 ### 其余总结
 
@@ -364,3 +382,30 @@ axis=0 增加行；axis=1 增加列
     df = pd.DataFrame(np.random.random(size=(5, 3)))
     print(df)
     normalization(df)
+
+二十三、表透视
+
+    df = pd.DataFrame({"A": ["foo", "foo", "foo", "foo", "foo",
+                            "bar", "bar", "bar", "bar"],
+                    "B": ["one", "one", "one", "two", "two",
+                            "one", "one", "two", "two"],
+                    "C": ["small", "large", "large", "small",
+                            "small", "large", "small", "small",
+                            "large"],
+                    "D": [1, 2, 2, 4, 3, 4, 5, 6, 7],
+                    "E": [2, 4, 5, 5, 6, 6, 8, 9, 9]})
+
+    '''
+        A    B      C  D  E
+    0  foo  one  small  1  2
+    1  foo  one  large  2  4
+    2  foo  one  large  2  5
+    3  foo  two  small  4  5
+    4  foo  two  small  3  6
+    5  bar  one  large  4  6
+    6  bar  one  small  5  8
+    7  bar  two  small  6  9
+    8  bar  two  large  7  9
+    '''
+    df
+    pd.pivot_table(df,values=['D'],index=['A','B'],columns='C',dropna=False, aggfunc=[np.sum,np.size],fill_value=0,margins=True)
