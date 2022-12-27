@@ -145,11 +145,10 @@ df = df.withColumn('age',df.age.cast('string'))
 指定列填充缺失值
 df = df.na.fill({ 'age' : 50, 'name' : 'x'}) 
 
-filter函数，此处将col_a列大于0的数据筛选出来
-df = df.filter(F.col('col_a')>0)
-
-过滤字段为空
-df = df.filter(F.col('order_start_h3').isNull())
+filter函数
+df = df.filter(F.col('col_a')>0) 将col_a列大于0的数据筛选出来
+df = df.filter(F.col('c').between(7,10))  将c列值处于[7,10]筛选出来
+df = df.filter(F.col('order_start_h3').isNull()) 筛选字段为空，筛选不为空前加取反号～
 
 将旧字段改为新字段名(parms旧，parms新)
 df = df.withColumnRenamed('event_day','bike_event_day')
@@ -223,7 +222,38 @@ df_rdd = df.rdd.map(get_move_in)
 df = spark.createDataFrame(df_rdd,schema=schema_move_in) 
 # schema 确定数据类型，若有字段有空值，不定义好schema就会报错
 
+
+读取hdfs二进制模型文件，并反序列化调用
+import pickle
+from pyspark import SparkContext
+# 创建 SparkContext 或是 启动SparkSession，用spark.sparkContext调用
+# sc = SparkContext("local", "My App")
+# 从 HDFS 读取模型文件
+model_file = spark.sparkContext.binaryFiles('hdfs:///data/ai/models/liuxuanheng/model_v1.pkl')
+# 获取文件名和文件内容
+file_name, file_content = model_file.first()
+# 反序列化模型
+model = pickle.loads(file_content) # 如果直接在自定义函数中调用model会出现序列化错误，用广播变量不报错
+# 模型广播变量
+model_value = spark.sparkContext.broadcast(model)
+# 自定义函数   
+def get_predict(x):
+    nx = x.asDict()
+    # 输入
+    feature_list = []
+    for col in x_names:
+        feature_list.append(nx[col])
+    input_x = np.asarray(feature_list).reshape(1,-1)
+    # 预测
+    model2 = model_value.value # 模型调用
+    tmp_df = model2.predict(input_x,full_output=True)
+    nx.update(d)
+    return Row(**nx)
+feature_df = feature_df.rdd.map(get_predict).toDF()
+
 ```
+
+
 ### 广播变量
 
 **使用方法**
@@ -438,3 +468,6 @@ df = df.groupBy('Col1').agg(fn.collect_list('Col2').alias('Col2')).rdd.map(row_d
         
         return spark
     spark = open_spark_session(app_name='xxx')
+
+
+

@@ -47,11 +47,12 @@
 
 ### 强化学习
 Deep Reinforcement Learning: [链接](https://deepreinforcementlearningbook.org/)
+[B站深度强化学习](https://www.bilibili.com/video/BV1rv41167yx/?spm_id_from=333.337.search-card.all.click&vd_source=7e4343821f4cd66f09eabd1a98a4bfa0)
 
 ### 推搜
 [学习笔记](https://zhuanlan.zhihu.com/wangzhenotes)
 [简介](https://zhuanlan.zhihu.com/p/336643635)
-
+[用户行为序列推荐模型](https://www.infoq.cn/article/u5NIq42APeLbusplXOSF?utm_source=related_read_bottom&utm_medium=article)
 ### STAR原则 
 按照下述4个维度，对任务或者场景状态去思考及总结
 
