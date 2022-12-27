@@ -747,3 +747,52 @@ $\begin{aligned} dis &=2 r \arcsin \left(\sqrt{\operatorname{hav}\left(\varphi_2
 - 4.[geopandas-doc](https://geopandas.org/en/stable/gallery/polygon_plotting_with_folium.html)
 - 5.[h3-doc](https://h3geo.org/docs/3.x/api/indexing)
 - 6.[Sedona](https://sedona.apache.org/api/sql/Overview/)
+
+
+### python对象序列化
+
+- Python pickle模块是对二进制协议的一种实现，用于对于python中的对象结构进行（正向的）序列化(serialization)和（反向的）解序列化(de-serialization)处理。
+- 序列化(serialization)将结构化的python对象（如list, dict等）转化为字节流(byte stream)，通常也称为pickling，flattening,或者marshalling. 
+- 解序列化处理即将由pickling处理生成的字节流反向变换回原来的python对象，也称为unpickling.
+- 为什么需要序列化处理呢？ 一言以蔽之，方便数据在不同的系统等之间进行传输、以及以文件或者数据库的方式进行存储
+
+```python
+# 以模型保存加载为例
+
+# 方法一
+import joblib
+# 保存
+joblib.dump(value=uplift_model, filename='uplift_model_v1.m')
+# 加载
+model = joblib.load('uplift_model_v1.m')
+# 预测
+model.predict()
+
+# 方法二
+import pickle
+# 保存 由于转换成了字节序列，所以只能以二进制的格式存入文件，所以open()命令的选项为'wb'，其中b表示binary
+with open('model_file.pkl',mode='wb') as f:
+    pickle.dump(uplift_model,f) # 将模型uplift_model序列化后存入文件f中
+# 加载
+with open('model_file.pkl', 'rb') as fh:
+    model = pickle.load(fh) # 解序列化文件中内容，恢复出原python对象层次结构
+# 预测
+model.predict()
+
+
+# dumps()这个函数与dump()的区别在于它将序列化后的数据存储在一个字节流对象，而非文件中
+# loads()与dumps()构成一对,直接从pickle序列化后的字节流对象恢复出原始的结构层次
+data1 = [ { 'a':'A', 'b':2, 'c':3.0 } ]
+print ('BEFORE:',)
+pprint.pprint(data1)
+ 
+data1_string = pickle.dumps(data1)
+ 
+data2 = pickle.loads(data1_string)
+print ('AFTER:',)
+pprint.pprint(data2)
+ 
+print ('SAME?:', (data1 is data2))
+print ('EQUAL?:', (data1 == data2))
+
+```

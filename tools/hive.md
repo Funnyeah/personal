@@ -212,7 +212,10 @@ select 'tcghhgsf2s3f3' rlike 'sf'
 -- 返回true 只要字符串包含匹配的字符，无论任何位置都返回true
 
 select space(10)
--- 返回十个长度的空字符串'          '
+-- 返回十个长度的空字符串'   
+
+select typeof(a) from tmp
+-- presto 返回字段a类型
 
 ```
 
@@ -231,6 +234,8 @@ select format_datetime(from_unixtime(1609167953000/1000),'yyyy-MM-dd')
 -- return 2020-12-18 #presto 正规的日期date格式 2 字符串, 字符串转date格式用第一个
 select format_datetime(from_unixtime(1609167953694/1000)+ interval '8' hour + interval '30' MINUTE,'yyyy-MM-dd HH:mm:ss') 
 -- return 2020-12-29 07:35:53  format_datetime 还可以加时间偏移 hh为12小时制，HH为24小时制
+select date_format(current_timestamp - interval '1' day, '%Y%m%d') --current_timestamp 2022-12-05 14:21:15.55
+-- return 20221204
 ```
 hive
 ```sql
@@ -250,7 +255,13 @@ select cast('2022-04-20' as TIMESTAMP)- interval '1' day  , cast('2022-04-20' as
 
 #### 其他时间函数 
 ```sql
-select  to_date("1970-01-01 00:00:00")    
+select  date_format(CURRENT_TIMESTAMP,'%Y%m%d') cur_event_day -- presto '20221206'
+select  date_format(CURRENT_TIMESTAMP,'yyyyMMdd') cur_event_day -- hive '20221206'
+
+select date_diff('day',cast('2022-12-20' as TIMESTAMP),CURRENT_TIMESTAMP ) -- presto  'day'日期差，'month'月份差等 后一个减去前一个
+select datediff('2009-03-01', '2009-03-03'), datediff(CURRENT_TIMESTAMP,'2022-12-20') -- hive return -2, 1 日期差（天）前一个减去后一个
+
+select to_date("1970-01-01 00:00:00")    
 -- return "1970-01-01"   返回日期date格式的 年月日
 select year("1970-01-01 00:00:00")    
 -- return 1970     int格式 年份 
@@ -258,8 +269,6 @@ select quarter("1970-01-01 00:00:00")
 -- return  1     int格式 季节(1-4)   
 -- month （1-12）月份 day  hour  minute  second  weekofyear  
 
-select datediff('2009-03-01', '2009-03-03') 
--- return -2 日期差（天）前一个减去后一个
 select date_add('2008-12-31', 1)  
 -- return '2009-01-01'   日期加一天     
 select date_sub('2008-12-31', 1)  
@@ -267,14 +276,20 @@ select date_sub('2008-12-31', 1)
 select date_sub(current_date(),1)    
 -- return '2022-04-20'    current_date() 当前日期'2022-4-21'
 
-select current_timestamp()  
+select current_timestamp  
 -- return '2022-04-21 16:44:04.855'
 select last_day('2021-06-09 11:16:28.245') 
 -- return '2021-06-30' 返回当前日期所在月份的最后一天
 select next_day('2021-06-09', 'Monday')     
 -- return '2021-06-14'   返回当前日期下一个指定的周几   本例中6.9为周三，下一个周一为6.14   'Mo' 、'Mon'、'Monday'  三种形式均可
-select  trunc('2021-06-09', 'YY')    
--- return '2021-01-01'   返回指定的截断月份（'MM'）或者年份的第一天     
+
+按年份、月份、第几周分组
+-- presto 可用如下一个函数截断获取周、月、年的开始日期，达到分组目的 参数：'week','month','year'
+select date_trunc('week', date '2022-12-27')
+-- hive 可用如下函数截断获取月、年的开始日期；用第二个函数获取第几周的周数字 参数：'MM','YY'
+select trunc('2021-06-09', 'YY')   --  返回'2021-01-01'   
+select weekofyear('2021-06-09') -- 返回第23周
+
 select months_between('1997-02-28 10:30:00', '1996-10-30')
 -- return 3.94959677  根据毫秒级计算的月份差
 
@@ -322,10 +337,13 @@ select xx,group_concat(win_id) from tb group by xx
 select station_id,collect_list(win_id) from tmp group by station_id
 -- hive return 1001  [1,2,3] collect_list()返回聚合列表  collect_set() 列表去重
 
-select sum() over (partition by col_a,b order by col_c,d range between xx and xx )
--- sum()求和  xx：向前使用preceding，向后使用following，当前行使用current row
+select sum(col_a) over (partition by col_a,b order by col_c,d range/rows between 1 xx and 2 xx )
+-- sum(col_a)求和  xx：向前使用preceding，向后使用following，当前行使用current row
 -- unbounded preceding and current row 表示当前行和之前所有行
--- 不写range between 函数也等同于当前行和之前所有行
+-- rows表示行，即按条件分好的前n行，后n行; 
+-- range表示的是具体的值，比这个值小n的行，比这个值大n的行。如下所示
+sum(close) range between 100 preceding and 200 following
+-- 通过字段差值来进行选择。如当前行的 close 字段值是 200，那么这个窗口大小的定义就会选择分区中 close 字段值落在 100 至 400 区间的记录（行）
 
 count(*) --行数,包括null的所有行
 count(1) --行数,不包含null的所有行
@@ -468,8 +486,8 @@ select * from parms
 
 2.array
 "hive"
-select array(1,2,3),array(1,2,3)[0],array(1.2,'x')
--- 返回[1,2,3], 1, ['1.2','x']  
+select array(1,2,3),array(1,2,3)[0],array(1.2,'x'),size(array(1.2,'x'))
+-- 返回[1,2,3], 1, ['1.2','x']  , 2（数组长度）
 
 select array(1,'2','x',1.2) x
 union 
@@ -643,12 +661,64 @@ id, s from (  select 2 as id )
 cross join 
 UNNEST(SEQUENCE(0,10, 2)) as t ( s )
 ```
-#### json格式解析
+
+#### 已知开始日期和结束日期，动态生成此范围内的日期序列
 ```sql
+
+--1.计算需要重复的行数n（天数n=结束日期end_date - 开始日期begin_date）；
+
+--2.设计一个长度为 n 的数组对象。通过 space(n)函数 生成 n 个空格的字符串，split()函数 以空格为分隔符，将字符串变成含 n 个元素的数组，根据此，这里也可以换成 split(repeat(n, 分隔符),分隔符)；
+
+--3.通过udtf函数 posexplode()函数 对数组字段进列转行，同时生成行号 i ；
+
+--4.最后，根据每行的行号 i，以及开始日期begin_date计算当前日期current_date。
+
+with test as (
+select 'A' as id, '2019-01-07' as begin_date,  '2019-01-10' as end_date
+union all
+select 'A' as id, '2019-01-01' as begin_date,  '2019-01-04' as end_date
+union all
+select 'B' as id, '2019-01-03' as begin_date,  '2019-01-05' as end_date
+)
+
+select  id, date_add (begin_date, pe.i) as current_dates, begin_date, end_date
+from test 
+lateral view
+posexplode(split(space(datediff(end_date, begin_date)),' ')) pe as i, x 
+```
+
+#### json
+```sql
+-- 1.json键值解析
 -- hive
 get_json_object(json_col,'$.xxx')  -- json_col为hive列 xxx为json串中所需解析字段
 -- presto mysql
-json_extract(json_col, '$.xxx')
+json_extract(json_col, '$.xxx') --返回所有 JSON 值
+json_extract_scalar(json_col, '$.xxx') --只返回标量值（字符串、数字、布尔值），因此如果多层嵌套用这个解析就会为null不显示字段值
+
+-- 2.json键值类型变换
+-- > json值为普通类型（整形、浮点型、字符串、布尔型）可以直接cast json类型为对应类型 presto
+cast(json_extract(json_col, '$.mean_buy_discount_rate') as varchar/int/double) col_a
+
+-- > json值为列表[]等复杂类型，直接解析出来为json格式，则需用json_format将json对象变为字符串格式，再进行字符串解析/替换操作得到嵌套键值，不能直接cast
+json_format(json_extract(json_col, '$.xxx')) col_a
+
+-- > example:
+-- > 原始数据
+{"coupon_info": [{"coupon_product_name": "4\u59292\u6b21\u5361", "coupon_product_id": "1006633", "original_price": 400.0, "discount_price": 320.0, "discount_rate": 0.8}, {"coupon_product_name": "4\u59293\u6b21\u5361", "coupon_product_id": "1006639", "original_price": 600.0, "discount_price": 420.0, "discount_rate": 0.7}, {"coupon_product_name": "20\u59295\u6b21\u5361", "coupon_product_id": "1006635", "original_price": 1000.0, "discount_price": 600.0, "discount_rate": 0.6}, {"coupon_product_name": "14\u59297\u6b21\u5361", "coupon_product_id": "1006641", "original_price": 1400.0, "discount_price": 700.0, "discount_rate": 0.5}]}
+
+-- > 目标为获取coupon_info列表内每个coupon的信息
+-- hive 分隔符需要转译,以下两种均可以 
+-- 再行转列 lateral view explode(xx) tmptb as res
+split(REPLACE(REPLACE(REPLACE(GET_JSON_OBJECT(coupon_info, '$.coupon_info'), '[', ''),']', ''), '},{','}|{'),'\\|') xx
+split(regexp_replace(regexp_extract(GET_JSON_OBJECT(coupon_info, '$.coupon_info'), '(\\[)(.*?)(\\])', 2), '\\},\\{', '\\}#\\{'), '\\#') 
+-- presto 方法1需要先将json值变为字符串类型，分隔符不需要转译
+-- 方法2可以直接cast成 array(map(varchar,varchar))格式，后续通过array[下标][key]即 xx[2]['original_price']获取值
+-- 或行转列 cross join unnest(xx） as t(res)
+split(REPLACE(REPLACE(REPLACE(json_format(json_extract(coupon_info, '$.coupon_info')), '[', ''),']', ''), '},{','}|{'),'|') xx
+cast(json_extract(coupon_info, '$.coupon_info') as array(map(varchar,varchar))) xx
+
+[presto json函数](https://blog.csdn.net/lz6363/article/details/124554654)
 ```
 
 #### 威尔逊区间平滑
