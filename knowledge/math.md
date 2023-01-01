@@ -464,11 +464,12 @@ $H(X)=-\sum_{i=1}^n p\left(x_i\right) \log \left(p\left(x_i\right)\right)$
 
 - 指的就是信息量的大小，越有可能发生的事情，信息量越小，熵值越小，越不可能发生的事情，信息量越大，熵值越大。
 - 本质上熵是信息量的期望，他的大小跟信息量的大小一定程度上成正相关。
-- 公式表示为事件所有发生的概率乘以对应的概率的对数的总和，再去负数
+- 公式表示为事件所有发生的概率乘以对应的概率的对数的总和，再取负数
 - 为什么公式这样表达呢？因为取对数防止造成熵值的不必要波动，比如1和1亿这么一比较方差很大，但是取对数，方差很小
 - 那为什么取负数呢？因为概率恒小于1,取对数恒小于0，为了方便观察对终值取负
 
 2.相对熵(KL散度)
+
 相对熵及KL散度，KL距离，是两个随机分布间距离的度量，它度量当真实分布为p时，假设分布q的无效性
 一个算法中我们定义的有钱人和穷人的标准，跟机器定义的有钱人和穷人的标准，就有了一个gap，这个gap就是广义上的相对熵，即：预测值跟实际值的差距。如下是相对熵的数学定义
 
@@ -481,7 +482,7 @@ $\begin{aligned} D_{K L}(p \| q) &=\sum_{i=1}^n p\left(x_i\right) \log \left(p\l
 发现第一项是恒定不变的，第二项就被定义为交叉熵
 
 
-### 运筹学
+### 运筹优化
 
 [blog](https://blog.csdn.net/kittyzc/category_7940150_2.html)
 
@@ -557,7 +558,16 @@ $\begin{aligned} D_{K L}(p \| q) &=\sum_{i=1}^n p\left(x_i\right) \log \left(p\l
 
 - 干预人群与非干预人群的score分布 —— 匹配后分布一致
 - 抽样后人群在一些画像（如年龄、性别、职业）上的分布会更接近
-  
+
+#### 弹性模型评估指标
+[1](https://zhuanlan.zhihu.com/p/363082639)
+
+[2](https://zhuanlan.zhihu.com/p/457689388)
+
+[3](https://mp.weixin.qq.com/s?__biz=MzI4MDYzNzg4Mw==&mid=2247552286&idx=5&sn=f5263dcc1cbc4b63acc47cf46cbe81c2&chksm=ebb735cadcc0bcdc998f647cc3cd61e74df9820cb68de5fd199785053e271763de0e28a5f2e5&scene=27)
+
+[4](https://zhuanlan.zhihu.com/p/399322196)
+
 ### 临时写公式
 
 $y=\omega_{0}+\sum_{i=1}^{n} \omega_{i} x_{i}+\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \omega_{ij} x_{i} x_{j}$
