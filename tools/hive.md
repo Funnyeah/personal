@@ -498,6 +498,8 @@ select array(1,2)
 SELECT ARRAY [3, 2, 5, 1, 2] -- 有点声明变量类型呢味儿了
 SELECT transform(ARRAY [5, NULL, 6], x -> COALESCE(x, 0) + 1)  -- [6, 1, 7]
 SELECT transform(ARRAY ['5', '2', '3'], x -> cast(x as int) + 1) -- 当然也可以变类型
+
+select array_position( array,search_value ) --返回数组中某个值的下标，无则返回0
 [数组操作](https://blog.csdn.net/u010711495/article/details/119772425)
 
 3.struct
@@ -718,7 +720,13 @@ split(regexp_replace(regexp_extract(GET_JSON_OBJECT(coupon_info, '$.coupon_info'
 split(REPLACE(REPLACE(REPLACE(json_format(json_extract(coupon_info, '$.coupon_info')), '[', ''),']', ''), '},{','}|{'),'|') xx
 cast(json_extract(coupon_info, '$.coupon_info') as array(map(varchar,varchar))) xx
 
-[presto json函数](https://blog.csdn.net/lz6363/article/details/124554654)
+-- 3.presto json类型变换
+[json函数](https://blog.csdn.net/lz6363/article/details/124554654)
+
+SELECT CAST(map(ARRAY[1,2,3],ARRAY[9,7,5]) AS json) -- '{"1":9,"2":7,"3":5}'
+SELECT CAST(CAST('1' as json) AS INTEGER) -- 1
+
+
 ```
 
 #### 威尔逊区间平滑

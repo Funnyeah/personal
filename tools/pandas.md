@@ -24,10 +24,16 @@
     df= block_cell_df.drop_duplicates(subset='block_id')   
     
     去除重复行，所有字段都一样的行,drop=True删除原先的index
-    df=data.drop_duplicates().reset_index(drop=True)                                     
+    df=data.drop_duplicates().reset_index(drop=True)   
+
+    去除null值的行,默认any一行有一个null就会被删除，all则全null才删除
+    df = df.dropna(how='all')                                  
     
     指定列排序
-    block_cell_df.sort_values(by='cell_id').head()                                              
+    block_cell_df.sort_values(by='cell_id').head()  
+
+    指定列取值统计, 
+    tmpd.product_id.value_counts(normalize=True)                                         
     
     apply函数
     order_df['in_cell_id']=order_df.apply(lambda x:generate_new_cell_id(x['in_cell_id'],new_block_version),axis=1)
