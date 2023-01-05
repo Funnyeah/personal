@@ -38,7 +38,7 @@
     # plt.scatter(x=[i[0] for i in data], y=[i[1] for i in data])
     # plt.scatter(x=[i[0] for i in a], y=[i[1] for i in a], color='red')
 
-    nodes_list = [(-518, -58)]
+    nodes_list = [(-518, -58)] # 初始点
     res = [nodes_list[0]]
     while True:
         if len(nodes_list) == 0:
@@ -48,8 +48,8 @@
         x = node[0]
         y = node[1]
         candidate = [(x-1, y-1), (x-1, y), (x-1, y+1), (x, y+1), (x+1, y+1), (x+1, y), (x+1, y-1), (x, y-1)]
-        for i in candidate:
-            if i in data:
+        for i in candidate: # 遍历初始点四周八个位置的点
+            if i in data: # 如果该点在原始数据中，则删除data,添加到res、nodelist
                 res.append(i)
                 nodes_list.append(i)
                 data.remove(i)
@@ -83,7 +83,7 @@
         plt.text(x, y, f'{idx}')
     plt.show()
 
-### 多线程/进程统计文件行数
+### 多线程与多进程
 
 多线程统计文件行数
 
@@ -99,7 +99,6 @@
     pool.map(get_hangshu,path)
 
 多进程统计文本行数
-
 
     from multiprocessing import Pool
     def get_hangshu2(path):
@@ -212,7 +211,7 @@
     sns.set(font_scale = 1.5)
 
 
-### mysql数据读取+spark计算
+### mysql数据读取
 ```python
 import pymysql
 data=[]
@@ -228,6 +227,7 @@ cursor = db.cursor()
 # 使用 execute()  方法执行 SQL 查询 
 cursor.execute("SELECT * from jw_block_station where block_version_code=21")
 data.extend(cursor.fetchall())
+# spark数据计算
 df = spark.createDataFrame(data,schema=['self_id','block_id','city_id','station_id','block_version_code','create_time','update_time'])
 cursor.close()
 
@@ -301,14 +301,114 @@ flag = True if sign==0 else False # 上述返回值一般系统为0表示正确�
     bike_one_worker = float(cf.get("trans", "bike_one_worker"))
 
 
-### KDtree
+### KD树
 ```python
 from scipy import spatial
 points = [(1,-1),(2,3),(2,-3),(-2,3)]
+# 建树
 tree = spatial.KDTree(points)
-res = tree.query_ball_point((0,0), 3)
-# 返回（0,0）坐标欧式距离为3米的点的列表
+# 1.返回距离（0,0）点欧式距离为3米以内的所有点
+tree.query_ball_point((0,0), 10)
+# 2.返回距离（1,1）点最近的k个点
+dist, index = tree.query([1,1],k=2)
+# Print the nearest neighbor and its distance
+print(f"Nearest neighbor: {index}")
+print(f"Distance: {dist}")
+
+# 3.返回两棵树的最近邻居
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import KDTree
+points1 = np.random.random((6, 2))
+points2 = np.random.random((6, 2))
+plt.figure(figsize=(6, 6))
+plt.plot(points1[:, 0], points1[:, 1], "xk", markersize=14)
+plt.plot(points2[:, 0], points2[:, 1], "og", markersize=14)
+kd_tree1 = KDTree(points1)
+kd_tree2 = KDTree(points2)
+indexes = kd_tree1.query_ball_tree(kd_tree2, r=0.2) # r为欧式距离
+for i in range(len(indexes)):
+    for j in indexes[i]:
+        plt.plot([points1[i, 0], points2[j, 0]],
+            [points1[i, 1], points2[j, 1]], "-r")
+plt.show()
+"""
+indexes: [[], [], [4], [0, 1, 2], [], [3, 5]]
+表示points1中0～5每个坐标点, 在point2中对应的最近邻居索引列表；
+即points1[0]无0.2距离内points2点, points1[5]与points2[3,5]距离为0.2以内
+"""
+
+# 4.凸包
+from scipy.spatial import ConvexHull
+import matplotlib.pyplot as plt
+
+points = np.random.random((6, 2))   # 6 random points in 2-D
+hull = ConvexHull(points)  # 凸面外壳
+
+plt.plot(points[:,0], points[:,1], 'o') # 可视化随机点
+for simplex in hull.simplices: # 遍历凸包的边
+    plt.plot(points[simplex,0], points[simplex,1], 'k-') # points[simplex,0]
+plt.show()
+""" 
+hull.simplices格式，表示第[4, 5]个数据点组成的边
+array([[4, 5],
+    [3, 0],
+    [3, 4],
+    [1, 0],
+    [1, 5]], dtype=int32)
+
+注意np列表切片！
+a = np.random.random((3,2))
+a[[0,1],0] # 输出0和1行的0列一维列表
+"""
 ```
+
+### 线性回归
+
+```python
+import pandas as pd
+import numpy as np
+
+cur_profit_pd = pd.DataFrame(data=[['20220818', 37, 3.0047078],['20220819', 67, 2.1807938],['20220820', 61, 1.7588849],
+       ['20220821', 46, 2.1684365],['20220822', 57, 1.2760408],['20220823', 62, 2.0023985],['20220824', 59, 2.4666967],
+       ['20220825', 64, 2.044002],['20220826', 71, 1.9777808],['20220827', 46, 2.521057],['20220828', 52, 2.288938],
+       ['20220829', 71, 1.7054245],['20220830', 36, 3.2455978],['20220831', 67, 0.87940025],['20220901', 77, 1.4135419],
+       ['20220902', 63, 2.2736137],['20220903', 74, 2.4237704],['20220904', 37, 2.781906],['20220905', 30, 2.2667823],
+       ['20220906', 24, 2.3162794],['20220907', 43, 1.293427],['20220908', 40, 2.1593351], ['20220909', 42, 2.6257336],
+       ['20220910', 54, 2.454437],['20220911', 64, 1.0809886],['20220912', 30, 3.5253098],['20220913', 41, 2.351022],
+       ['20220914', 47, 1.7092398],['20220915', 59, 1.9409277],['20220916', 62, 1.9712957],
+       ['20220917', 42, 2.5764923]],columns=['event_day','bike_cnt','avg_bike_profit'])
+# 训练数据
+xfit = cur_profit_pd['bike_cnt'].values.reshape(-1, 1)
+yfit = cur_profit_pd['avg_bike_profit'].values.reshape(-1, 1)
+# 评估数据
+xpre = np.linspace(min(cur_profit_pd['bike_cnt']), max(cur_profit_pd['bike_cnt']), num=10, endpoint=True)
+
+lr = LinearRegression()
+lr.fit(xfit, yfit)
+ypre = lr.predict(xpre[:, np.newaxis])
+
+# 对异常值具有鲁棒性的线性回归模型
+huber_lr = HuberRegressor()
+huber_lr.fit(xfit, yfit)
+huber_ypre = huber_lr.predict(xpre[:, np.newaxis])
+# 标记离群点
+outliers_profit_pd = cur_profit_pd[huber_lr.outliers_==True]
+
+fig, ax = plt.subplots(figsize=(16, 8))
+# plot默认画折线 参数"o"画点 
+ax.plot(cur_profit_pd['bike_cnt'], cur_profit_pd['avg_bike_profit'], "o", markerfacecolor="none") 
+# 离群点红色标记
+ax.plot(outliers_profit_pd['bike_cnt'], outliers_profit_pd['avg_bike_profit'], "o", markerfacecolor="red")
+ax.set(xlabel="bike_cnt", ylabel="avg_bike_profit", title=f"city_id: {cur_city_id}; station_id: {cur_station_id}; span: {cur_span}; huber_k: {round(huber_lr.coef_[0], 4)}; huber_b: {round(huber_lr.intercept_, 4)}")
+# 画预测线（未去/去除离群点）
+ax.plot(xpre, ypre, "-", label="lr")
+ax.plot(xpre, huber_ypre, "-", label="huber_lr")
+ax.legend()
+plt.show()
+
+```
+
 ### 交互式输出和打印输出的区别
     b= 'D:\game\pal4' 
     print(b)     
@@ -325,23 +425,39 @@ res = tree.query_ball_point((0,0), 3)
     "io,%s,%.2f"%(1,2)
     返回 'io,1,2.00'   
 
-### 字典赋值
+    cid = 98
+    f"io,{cid}"
+    返回 'io,98'  
+
+### 字典value赋值为列表
 
     dic = {}
     dic.setdefault(1,[]).append((2,3))  #{1: [(2, 3)]}
     dic.setdefault(1,[]).append((4,5))  #{1: [(2, 3), (4, 5)]}
 
+### 异常回溯输出
 
-### 列表元祖->元祖列表
-    -- list(tuple(x,y)) ——>  list(tuple(x),tuple(y))
+    import traceback
+    try:
+        # Some code that may raise an exception
+        a = 1 / 0
+    except Exception:
+        # Print the traceback of the exception
+        print(traceback.format_exc())
 
-    lis4= [(-516, -53), (-516, -53), (-511, -60), (-511, -60), (-511, -60), (-509, -55), (-509, -55), (-512, -59), (-515, -59), (-515, -59),
-    (-510, -57), (-510, -57), (-514, -52), (-510, -53), (-510, -53), (-515, -51), (-515, -51), (-515, -51), (-518, -58), (-510, -56), (-513, -59), (-513, -52), (-513, -52), (-515, -52), (-511, -58), (-514, -59), (-511, -53), (-516, -58), (-516, -54),(-509, -54), (-509, -54), (-511, -59),
-    (-512, -53),(-517, -55),(-517, -55)]
-    
+    # print info  
+    Traceback (most recent call last):
+    File "<ipython-input-31-d956046dfc96>", line 5, in <module>
+        a = 1 / 0
+    ZeroDivisionError: division by zero
+
+
+### zip解包
+    ：list(tuple(x,y)) ——>  list(tuple(x),tuple(y))
+    lis4= [(-516, -53), (-516, -53), (-511, -60), (-511, -60)]
     方法：list(zip(*lis4))
 
-### 日志时间记录
+### 日志logger类
     import datetime
     class Logger:
         def __init__(self, path):
@@ -436,7 +552,7 @@ res = tree.query_ball_point((0,0), 3)
             return
     p2 = july()    #TypeError: Can't instantiate abstract class july with abstract methods eat 
 
-### 某目录下所有文件打包
+### 打包目录下文件
     import os
     import tarfile
 
@@ -448,7 +564,6 @@ res = tree.query_ball_point((0,0), 3)
             for file_name in files:
                 if ignore and file_name in ignore:
                     continue
-
                 yield os.path.join(dir_name, file_name)
 
     def make_tar_file(dir_name='.', tar_file_name='tarfile.tar', ignore=None):
@@ -464,7 +579,7 @@ res = tree.query_ball_point((0,0), 3)
     ignore = {'.ipynb_checkpoints', '__pycache__', tar_file_name} # 需要忽略的文件
     make_tar_file(dir_name, tar_file_name, ignore)
 
-### 获取车站半径26m内的所有13级h3列表
+### 获取坐标指定半径内的所有指定等级h3列表
     import geog
     from h3 import h3
     import numpy as np
@@ -480,18 +595,19 @@ res = tree.query_ball_point((0,0), 3)
         x_dict['station_block_id'] = station_h3_index
 
         # 车站半径25m内所有h3 13级索引
+        h3_level = 13
         p = geometry.Point([lon, lat]) # 圆
         n_points = 20
-        d = 26  # meters
+        d = 26  # 距离,米
         angles = np.linspace(0, 360, n_points)  #角度分20个
         polygon = geog.propagate(p, angles, d)  #得到圆的近似多边形,这里的p只接受经纬度
         geo_js = geometry.mapping(geometry.Polygon(polygon)) #写成geojson格式
-        block_list = h3.polyfill(geo_js, 13, True) # 获取图形内包含的所有13等级h3
+        block_list = h3.polyfill(geo_js, h3_level, True) # 获取图形内包含的所有13等级h3
 
         x_dict['block_id_list'] = list(block_list)
         return Row(**x_dict)
 
-### ELO等级分
+### ELO等级评分
 ```python
 #定义elo score 等级评分类
 class EloScore:
@@ -687,7 +803,7 @@ $\begin{aligned} dis &=2 r \arcsin \left(\sqrt{\operatorname{hav}\left(\varphi_2
     from geopy.distance import geodesic
     geodesic((30.28708,120.12802999999997), (28.7427,115.86572000000001)).m # .km是千米
 
-    # 方法四
+    # 方法四(常用)
 
     def haversine(latlon1, latlon2):
     """
@@ -708,9 +824,6 @@ $\begin{aligned} dis &=2 r \arcsin \left(\sqrt{\operatorname{hav}\left(\varphi_2
     return distance
 
     
-
-
-
 
 #### 底层数据存储
 
