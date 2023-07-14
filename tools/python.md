@@ -159,6 +159,9 @@
 
     from lbe import getf
     getf()
+    
+    万能方法
+    **用 sys.path.append() 将要导入的文件所在的目录添加到系统路径中**
 
     （1）需要导入的文件与当前运行文件处于同一层
     from c import getsd # 直接在运行文件上方写入 from 文件名 import 需要的函数/类
@@ -307,7 +310,7 @@ from scipy import spatial
 points = [(1,-1),(2,3),(2,-3),(-2,3)]
 # 建树
 tree = spatial.KDTree(points)
-# 1.返回距离（0,0）点欧式距离为3米以内的所有点
+# 1.返回距离（0,0）点欧式距离为10米以内的所有点
 tree.query_ball_point((0,0), 10)
 # 2.返回距离（1,1）点最近的k个点
 dist, index = tree.query([1,1],k=2)
@@ -362,6 +365,65 @@ a = np.random.random((3,2))
 a[[0,1],0] # 输出0和1行的0列一维列表
 """
 ```
+### np各种分布函数
+
+NumPy 中的 numpy.random 库包含了很多分布函数，可以生成随机数。这些分布函数包括：
+
+numpy.random.random()：均匀分布，范围固定为[0.0, 1.0)内的随机浮点数
+numpy.random.uniform：均匀分布，范围可传参改变，随机数概率相等。 
+numpy.random.normal：正态分布（高斯分布）。
+numpy.random.binomial：二项分布。
+numpy.random.poisson：泊松分布。
+numpy.random.exponential：指数分布。
+numpy.random.standard_t：t 分布。
+numpy.random.chisquare：卡方分布。
+numpy.random.gamma：伽马分布。
+numpy.random.beta：贝塔分布。
+numpy.random.dirichlet：狄利克雷分布。
+numpy.random.multivariate_normal：多元正态分布。
+
+```python
+np.random.uniform(0, 1, 10) # 均匀分布 0,1 等概率随机生成10个数
+np.random.normal(0, 2, 10)  # 正态分布（高斯分布） 以均值为0, 标准差为2 生成10个随机数
+```
+### 核函数
+
+
+核函数（kernel function）是一种常用的数学工具，在机器学习和模式识别中有着广泛的应用。它的主要作用是将原始数据映射到一个高维空间，以便更好地分类或回归。
+
+核函数定义了两个样本点之间的相似度，通常表示为 k(x, y)，其中 x 和 y 是两个样本点。如果两个样本点之间的相似度越高，则对应的核函数值就越大；如果两个样本点之间的相似度越低，则对应的核函数值就越小。因此，核函数可以帮助我们表示样本间的关系。
+
+在机器学习中，核函数与核技巧一起使用，可以让我们在高维空间中使用线性模型，而不需要手动构造高维空间的特征。这样可以避免高维空间中的维数灾难（curse of dimensionality），以及减少模型训练的难度。常用的核函数包括高斯核、多项式核和拉普拉斯核等。
+
+### 高斯核
+
+高斯核（Gaussian kernel）是一种常用的核函数，通常用于计算两个样本点之间的相似度。它是一种非常通用的核函数，在许多机器学习任务中都得到了广泛的应用，例如支持向量机（SVM）、高斯过程（GP）、核密度估计（KDE）等。
+
+高斯核的计算公式为：k(x, y) = exp(- ||x - y||^2 / (2 * σ^2))
+
+其中，x 和 y 是两个样本点，||x - y||^2 表示它们之间的欧几里得距离的平方，σ 是高斯核的带宽参数，决定了核函数的形状。带宽参数越大，核函数的形状就越平坦，表示两个样本点间的相似度差别越小；带宽参数越小，核函数的形状就越陡峭，表示两个样本点间的相似度差别越大。因此，选择合适的带宽参数对于核函数的效果有很大的影响。
+
+```python
+import numpy as np
+from sklearn.metrics.pairwise import rbf_kernel
+
+# 定义样本点
+X = np.array([[0, 0], [1, 1], [2, 2]])
+# 计算高斯核
+gamma = 1
+K = rbf_kernel(X, X, gamma=gamma)
+print(K)
+
+"""输出
+[[1.         0.36787944 0.13533528]
+ [0.36787944 1.         0.36787944]
+ [0.13533528 0.36787944 1.        ]]
+
+上面的代码计算了三个样本点之间的高斯核，其中 X 是样本点的矩阵，gamma 是带宽参数，K 是核矩阵。可以看到，核矩阵的对角线上的元素均为 1，表示三个样本点都与自身完全相似。另外，核矩阵中的元素表示两个样本点之间的相似度，越大表示它们间的相似度越高。
+"""
+
+```
+
 
 ### 线性回归
 
@@ -406,6 +468,46 @@ ax.plot(xpre, ypre, "-", label="lr")
 ax.plot(xpre, huber_ypre, "-", label="huber_lr")
 ax.legend()
 plt.show()
+
+```
+
+### AB测试样本量确定
+
+[link](https://blog.csdn.net/BulletTech2021/article/details/122075245)
+
+```python
+
+"""
+z检验显示的最小样本量为试验的总样本量
+卡方检验显示最小样本量为每组样本量
+"""
+from statsmodels.stats.power import zt_ind_solve_power,tt_ind_solve_power
+from statsmodels.stats.proportion import proportion_effectsize as es  
+from statsmodels.stats.power import GofChisquarePower
+
+##### 比例类指标样本量预估
+μA = 4.9 / 10   # 期望提升到的车效   比值类指标：点击率、转化率，取值为0～1
+μB = 4.7 / 10  # 现有的车效   松果业务场景为车效，值大于1时，缩小比例到0～1之间
+# 上述的比例近似会有些小问题，因为（μA = 2.4，μB = 2.2）计算出的值是不一样的，但针对我们的业务影响也不大，主要是预估一下最小样本量
+
+α = 0.05 # 显著性水平（α）：显著性水平越低，对实验结果的要求也就越高，越需要更大的样本量来确保精度
+β = 0.2 # 统计功效（1 – β）：统计功效意味着避免犯二类错误的概率，这个值越大，需要的样本量也越大
+
+#z检验
+#设定显著性水平为0.05，检验功效为0.8(1-β)，效应量为标准均差计算方式，对照组和实验组的（预期）比率分别为47%和49%，实验组和对照组数量相等，双边检验。
+z_num = zt_ind_solve_power(effect_size=es(prop1=μA, prop2=μB, method= 'normal'), alpha=α, power=1-β, ratio=1.0, alternative="two-sided")
+
+#卡方检验
+#设定显著性水平为0.05，检验功效为0.8，效应量为标准均差计算方式，对照组和实验组的（预期）比率分别为30%和33%，实验组和对照组数量相等，双边检验。
+k_num = GofChisquarePower().solve_power(effect_size=es(prop1=μA, prop2=μB, method= 'normal'), alpha=0.05, power=0.8,n_bins=2)
+
+print('z检验最小样本量：%s,\n卡方检验最小样本量：%s'%(z_num,k_num*2))
+
+#### 非比例类指标样本量预估 city_id=635
+μA = 3.88    # 期望提升到的车效  车均订单数 
+μB = 3.74
+σ = 2.47    # 车辆订单标准差，根据城市一定周期计算
+tt_ind_solve_power(effect_size=(abs(μA-μB))/σ, alpha=α, power=1-β, ratio=1.0, alternative="two-sided")
 
 ```
 
@@ -476,6 +578,24 @@ plt.show()
     log.info(f"xx.done")
     log.info(f"xx2.done")
     log.close()
+
+
+### 子类重载父类方法
+
+```python
+class Parent:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class Child(Parent):
+    def __init__(self,x,y,z):
+        super().__init__(x,y)
+        self.z = z
+c = Child(3,4,5)
+print(c.y) # 4
+
+```
 
 ### 类方法
     """
