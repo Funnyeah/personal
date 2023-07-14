@@ -729,6 +729,15 @@ SELECT CAST(CAST('1' as json) AS INTEGER) -- 1
 
 ```
 
+#### id哈希分组
+    if(
+        cast(conv(substr(md5(user_id), 2, 4), 16, 10) % 100 as int) + 1 < 51,
+        'expirment',
+        'controll'
+      )
+    -- cast(a.user_id as string) spark sql中需要将用户id类型由bigint转为string，可能是版本的问题
+
+
 #### 威尔逊区间平滑
 ```sql
   with smooth_tmp as (

@@ -14,6 +14,9 @@
     values = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
     df.fillna(value=values,inplace=Ture)  
 
+    nan数据判断,返回df对应列中布尔型series数据
+    pd.isna(df.cols) / pd.isnull(df.cols) 
+
     如果上述填充还不行可以用替换
     df = df.replace({'col': {np.nan: 100}})      
     

@@ -25,8 +25,12 @@ Tips: 一定要cd到项目文件下再创建分支
     git push                    提交代码到服务器
     git pull origin master      同步最新master代码到本地分支
 
-### 3.pip换国内源安装
+### 3.pip换国内源安装及多项依赖安装
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple tensorflow==2.2.0
+
+    pip install -r requirements.txt 
+    conda install --file requirements.txt
+
 
 ### 4.hadoop shell操作
 
@@ -153,3 +157,18 @@ kill -9 [PID]
 cd /data/apps/modules/jupyter_multi_users/shell
 ./start_jupyter_user.sh xxx 8888
 ```
+
+### MAC安装GraphViz软件并添加到环境变量 
+
+1.Install Homebrew: Open terminal and paste the following command:
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"   
+2.Install GraphViz using Homebrew:
+    brew install graphviz   
+3.Add GraphViz to PATH:
+    echo 'export PATH="/usr/local/opt/graphviz/bin:$PATH"' >> ~/.bash_profile
+4.Close and re-open terminal or run the following command:
+    source ~/.bash_profile  
+5.Now GraphViz and its executables should be installed and added to PATH. You can check if it's installed correctly by typing the following command in terminal:
+    dot -V
+
+

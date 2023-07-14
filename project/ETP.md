@@ -297,7 +297,7 @@ import os
 import json
 
 def execute_ot(block, station, cost, target_field):
-    """
+    """q
     block：城市全量区块，每个区块数据包含当时车辆及其相关信息
     station：城市全量车站，每个车站数据包含离线计算的车站信息
     cost：城市部分区块到所有车站距离成本，由于区块稀疏，计算时只传入时刻全部车辆所在区块

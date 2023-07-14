@@ -101,3 +101,13 @@ Deep Reinforcement Learning: [链接](https://deepreinforcementlearningbook.org/
 [spark](https://spark.apache.org/docs/latest/sql-getting-started.html)
 [spark-sql](https://spark.apache.org/docs/latest/api/sql/)
 [sedona大规模数据处理系统](https://sedona.apache.org/)
+
+GIS 分析常用一些工具
+1.folium： https://github.com/python-visualization/folium
+2.pyecharts： https://github.com/pyecharts/pyecharts
+3. geopandas：https://github.com/geopandas/geopandas
+4. pysal：https://github.com/pysal/pysal
+5. pydeck：https://deckgl.readthedocs.io/en/latest/
+6. H3： https://github.com/uber/h3-py
+7. S2：https://github.com/google/s2geometry
+8. shapely： https://github.com/Toblerity/Shapely
