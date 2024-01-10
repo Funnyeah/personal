@@ -22,5 +22,5 @@
 - 项目
   - [ETP](project/ETP.md)
 
-- code
-  - [code](jupyter/coding/code.ipynb)
+- coding
+  - [coding](jupyter/coding/code.md)
